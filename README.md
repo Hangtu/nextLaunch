@@ -9,7 +9,7 @@ Production-ready Next.js 16 boilerplate with auth, payments, email, storage, i18
 | **Framework** | Next.js 16 (App Router) + React 19 |
 | **Styling** | Tailwind CSS v4 + Shadcn/UI + Lucide Icons |
 | **Database** | PostgreSQL via NeonDB + Drizzle ORM |
-| **Auth** | Clerk (middleware + auth helpers + webhook) |
+| **Auth** | Clerk (proxy + auth helpers + webhook) |
 | **Payments** | Stripe (client + webhook) |
 | **Email** | Resend (send function + HTML templates) |
 | **Storage** | Cloudflare R2 (S3-compatible) |
@@ -94,7 +94,7 @@ src/
 │   ├── db/           # Drizzle ORM connection + schema + seed
 │   └── email/        # Email send function + HTML templates
 ├── messages/         # Translation JSON files (es.json, en.json)
-├── middleware.ts     # Clerk auth + next-intl locale middleware
+├── proxy.ts          # Clerk auth + next-intl locale proxy (Next.js 16)
 ├── schemas/          # Zod validation schemas
 ├── store/            # Zustand stores
 └── types/            # Shared TypeScript types (ActionResponse, PaginatedResponse)

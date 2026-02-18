@@ -79,7 +79,7 @@ _Rules that the business logic MUST follow strictly. These are non-negotiable._
 - [x] Project lints with zero errors (`npm run lint`).
 - [x] All 16+ dependencies installed and configured.
 - [x] All SDK clients initialized (`stripe`, `resend`, `r2`, `db`).
-- [x] Auth middleware functional (Clerk + next-intl).
+- [x] Auth proxy functional (Clerk + next-intl).
 - [x] Webhook routes scaffolded (Clerk + Stripe).
 - [x] Example Server Action with full DAL pattern.
 - [x] Example Zustand store, custom hook, Zod schema.
@@ -189,7 +189,7 @@ src/
 ├── messages/         # Translation JSON files
 │   ├── es.json       # Spanish translations (default)
 │   └── en.json       # English translations
-├── middleware.ts     # Clerk auth + next-intl locale middleware
+├── proxy.ts          # Clerk auth + next-intl locale proxy (Next.js 16)
 ├── schemas/
 │   └── auth.ts       # Zod schemas: loginSchema, contactSchema
 ├── store/
@@ -270,7 +270,7 @@ _Update this section at the start of every coding session._
 - ✅ Architecture modules: env validation, auth helpers, error hierarchy, logger, API wrappers, SWR fetcher
 - ✅ DAL pattern with example (src/data/users.ts + src/actions/example.ts)
 - ✅ Webhook routes scaffolded (Clerk + Stripe with signature verification)
-- ✅ i18n configured (es/en) with Clerk + next-intl middleware
+- ✅ i18n configured (es/en) with Clerk + next-intl proxy
 - ✅ Email system (sendEmail + welcome template)
 - ✅ `CONTEXT.MD` fully populated
 
@@ -283,7 +283,7 @@ _Update this section at the start of every coding session._
 - [x] Next.js 16 + React 19 initialized
 - [x] Tailwind CSS v4 + Shadcn/UI + Lucide Icons configured
 - [x] NeonDB + Drizzle ORM configured with example schema
-- [x] Clerk auth with middleware and auth helpers
+- [x] Clerk auth with proxy and auth helpers
 - [x] Stripe client + webhook route
 - [x] Resend client + email send function + template
 - [x] Cloudflare R2 client configured
@@ -324,7 +324,7 @@ _Features planned for later versions. Do NOT implement unless explicitly moved t
 - [ ] Add `CLERK_WEBHOOK_SECRET` to `src/lib/env.ts` Zod validation
 - [ ] Add `NEXT_PUBLIC_APP_URL` to `src/lib/env.ts` Zod validation
 - [ ] React Email integration for richer email templates
-- [ ] Rate limiting middleware
+- [ ] Rate limiting proxy
 - [ ] Error monitoring (Sentry integration)
 - [ ] Analytics (PostHog / Vercel Analytics)
 - [ ] PWA support
@@ -452,7 +452,7 @@ _External services and their configuration. AI: Check this before integrating wi
 - **Webhook Verification:** `svix` package
 - **Key files:**
   - `src/lib/auth.ts` — `getCurrentUser()`, `requireAuth()`, `requireRole()`
-  - `src/middleware.ts` — Auth + locale middleware
+  - `src/proxy.ts` — Auth + locale proxy (Next.js 16)
   - `src/app/api/webhooks/clerk/route.ts` — Webhook handler
 - **Key env vars:** `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`
 
@@ -539,9 +539,9 @@ _Document recurring issues, non-obvious patterns, and solutions that the AI shou
 - **Client Hook Pattern:** Use `useAction(serverAction)` from `src/hooks/use-action.ts` to call Server Actions with automatic loading/error state management.
 - **Email Pattern:** Use `sendEmail()` from `src/lib/email` with HTML template functions from `src/lib/email/templates/`.
 - **Auth Guard Pattern:**
-  - Pages/Layouts: Protected by Clerk middleware in `src/middleware.ts`.
+  - Pages/Layouts: Protected by Clerk proxy in `src/proxy.ts`.
   - Server Actions: Use `requireAuth()` or `requireRole()` from `@/lib/auth`.
-  - Admin routes matched by `/:locale/admin(.*)` in middleware.
+  - Admin routes matched by `/:locale/admin(.*)` in proxy.
 - **Zustand Pattern:** Store files in `src/store/`. Access via hook: `const { value } = useAppStore()`.
 - **SWR Pattern:** Use `fetcher` from `@/lib/fetcher` as the default SWR fetcher: `useSWR<T>(url, fetcher)`.
 
