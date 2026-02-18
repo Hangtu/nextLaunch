@@ -1,37 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 NextLaunch
 
-## Getting Started
+Production-ready Next.js 16 boilerplate with auth, payments, email, storage, i18n, and a clean architecture — skip setup and start building features immediately.
 
-First, run the development server:
+## ✨ What's Included
+
+| Category | Technology |
+|---|---|
+| **Framework** | Next.js 16 (App Router) + React 19 |
+| **Styling** | Tailwind CSS v4 + Shadcn/UI + Lucide Icons |
+| **Database** | PostgreSQL via NeonDB + Drizzle ORM |
+| **Auth** | Clerk (middleware + auth helpers + webhook) |
+| **Payments** | Stripe (client + webhook) |
+| **Email** | Resend (send function + HTML templates) |
+| **Storage** | Cloudflare R2 (S3-compatible) |
+| **i18n** | next-intl (Spanish default + English) |
+| **State** | Zustand (client) + SWR (server) |
+| **Forms** | React Hook Form + Zod validation |
+| **Theming** | next-themes (dark mode ready) |
+| **Toasts** | Sonner |
+
+## 🏗️ Architecture Highlights
+
+- **Environment Validation** — Zod schemas validate all env vars at startup. Fail fast with clear errors.
+- **Auth Helpers** — `requireAuth()`, `requireRole()`, `getCurrentUser()` — no raw Clerk calls in business logic.
+- **Error Hierarchy** — Typed error classes (`NotFoundError`, `ValidationError`, `ForbiddenError`, etc.) with automatic API error handling.
+- **Structured Logger** — `logger.info/warn/error/debug` with timestamps and metadata. Swap to Pino/Axiom later without changing call sites.
+- **Data Access Layer (DAL)** — All DB queries isolated in `src/data/`. UI never imports the DB client directly.
+- **Typed Server Actions** — All actions return `ActionResponse<T>` (discriminated union). The `useAction()` hook handles loading/error state automatically.
+- **API Route Helpers** — `withErrorHandler()` HOC catches errors and returns consistent JSON responses.
+- **SWR Fetcher** — Typed `fetcher<T>` with `FetchError` class for data fetching.
+- **Email System** — `sendEmail()` + HTML template functions. Easy to extend with new templates.
+- **Webhook Routes** — Clerk (svix verified) + Stripe (signature verified), fully scaffolded.
+
+## 🚀 Quick Start
+
+### 1. Clone & Install
+
+```bash
+git clone <your-repo-url> my-project
+cd my-project
+npm install
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in your API keys:
+
+| Service | Where to get keys |
+|---|---|
+| **NeonDB** | [console.neon.tech](https://console.neon.tech) |
+| **Clerk** | [dashboard.clerk.com](https://dashboard.clerk.com) |
+| **Stripe** | [dashboard.stripe.com](https://dashboard.stripe.com) |
+| **Resend** | [resend.com](https://resend.com) |
+| **Cloudflare R2** | [dash.cloudflare.com](https://dash.cloudflare.com) → R2 |
+
+### 3. Push Database Schema
+
+```bash
+npm run db:push
+```
+
+### 4. (Optional) Seed Database
+
+```bash
+npm run db:seed
+```
+
+### 5. Start Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📂 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── actions/          # Server Actions (auth + validate + DAL + typed response)
+├── app/              # App Router pages, layouts, API routes
+│   ├── [locale]/     # i18n locale wrapper (es/en)
+│   └── api/webhooks/ # Clerk + Stripe webhook handlers
+├── components/ui/    # Shadcn/UI primitives (Button, Card, Input, Label, Sonner)
+├── data/             # Data Access Layer — pure DB queries
+├── hooks/            # Custom hooks (useAction)
+├── i18n/             # Internationalization config + routing
+├── lib/              # SDK clients, utils, logger, env, auth, errors, api helpers
+│   ├── db/           # Drizzle ORM connection + schema + seed
+│   └── email/        # Email send function + HTML templates
+├── messages/         # Translation JSON files (es.json, en.json)
+├── middleware.ts     # Clerk auth + next-intl locale middleware
+├── schemas/          # Zod validation schemas
+├── store/            # Zustand stores
+└── types/            # Shared TypeScript types (ActionResponse, PaginatedResponse)
+```
 
-## Learn More
+## 🧰 Available Commands
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format with Prettier |
+| `npm run db:push` | Push schema to NeonDB |
+| `npm run db:generate` | Generate migrations |
+| `npm run db:migrate` | Run migrations |
+| `npm run db:studio` | Open Drizzle Studio |
+| `npm run db:seed` | Seed database |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🏁 How to Start Your Project
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Define your domain** — Edit `src/lib/db/schema.ts` with your tables.
+2. **Push schema** — `npm run db:push`.
+3. **Create DAL functions** — Add files in `src/data/` for each entity.
+4. **Build Server Actions** — Add files in `src/actions/` following the example pattern.
+5. **Build UI** — Create pages in `src/app/[locale]/` and components in `src/components/`.
+6. **Update CONTEXT.MD** — Keep it updated as your single source of truth.
 
-## Deploy on Vercel
+## 📖 CONTEXT.MD
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project includes a comprehensive `CONTEXT.MD` file that serves as the **Single Source of Truth (SSOT)** for any AI assistant or developer working on the project. It documents:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# NextLaunch
+- Full tech stack and coding guidelines
+- Complete directory structure and route inventory
+- Database schema and DAL patterns
+- All environment variables
+- Known gotchas and architectural patterns
+- Project roadmap and current status
+
+**Always keep `CONTEXT.MD` updated** — it saves time for both humans and AI.
+
+## 📄 License
+
+MIT

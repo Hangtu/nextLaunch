@@ -1,4 +1,4 @@
-# 📂 PROJECT CONTEXT: [PROJECT_NAME]
+# 📂 PROJECT CONTEXT: NextLaunch
 
 > **SYSTEM INSTRUCTION FOR AI:**
 > This file is the Single Source of Truth (SSOT) for this project.
@@ -13,7 +13,7 @@
 
 Before answering ANY query, generating code, or analyzing logic, you MUST:
 
-1.  **Read this file** (`context.md`) in the project root immediately.
+1.  **Read this file** (`CONTEXT.MD`) in the project root immediately.
 2.  **Internalize the SSOT:** adopt the Tech Stack, Constraints, and Active Task defined here.
 3.  **Resolve Conflicts:** If the user's prompt contradicts this file, prioritize this file or ask for confirmation.
 
@@ -21,12 +21,12 @@ Before answering ANY query, generating code, or analyzing logic, you MUST:
 
 - **Concise:** Do not explain basic concepts. Just give the solution.
 - **Strict Compliance:** Adhere strictly to the Coding Guidelines in Section 2.
-- **Language:** Use **English** for code (variables, functions, types, comments, JSDoc). UI strings shown to users may stay in **[UI_LANGUAGE, e.g., Spanish]**.
+- **Language:** Use **English** for code (variables, functions, types, comments, JSDoc). UI strings shown to users stay in **Spanish** (default locale).
 - **Scope (YAGNI):** Implement only what is requested. If you see an important improvement, propose it first — do NOT implement without confirmation.
 - **Tests:** Write tests only when explicitly requested.
 - **Clarification:** If the request is ambiguous, ask before implementing. Do not assume.
-- **Documentation:** When flow or architecture changes, update `context.md`, `README`, and relevant docs accordingly.
-- **Security:** Always prioritize secure code. Consider auth, validation, input sanitization, RLS (if applicable), and attack prevention in every module. Security-first mindset.
+- **Documentation:** When flow or architecture changes, update `CONTEXT.MD`, `README`, and relevant docs accordingly.
+- **Security:** Always prioritize secure code. Consider auth, validation, input sanitization, and attack prevention in every module. Security-first mindset.
 - **Maintenance:** When a task/feature is completed, remind the user to update the checkboxes in this file.
 - **Dependencies:** Do NOT introduce new libraries, packages, or tools without explicit permission. If one is needed, propose it with a justification first.
 - **Refactoring:** Do not refactor code that is not related to the active task unless explicitly asked.
@@ -37,7 +37,7 @@ Before answering ANY query, generating code, or analyzing logic, you MUST:
 If the user says **"PHOENIX"** or **"RESET"**:
 
 - Ignore all previous chat history.
-- Re-read `context.md`.
+- Re-read `CONTEXT.MD`.
 - Confirm by stating the **Current Active Task** found in Section 5.
 
 ---
@@ -46,41 +46,47 @@ If the user says **"PHOENIX"** or **"RESET"**:
 
 ### Core Vision
 
-- **Elevator Pitch:** [One sentence describing the problem the app solves and for whom.]
-- **Target Audience:** [Who is the primary user? Secondary user if applicable?]
+- **Elevator Pitch:** NextLaunch is a production-ready Next.js 16 boilerplate that gives developers a fully configured starting point with auth, payments, email, storage, i18n, and a clean architecture — so they can skip setup and start building features immediately.
+- **Target Audience:** Solo developers, freelancers, and small teams who want to ship SaaS, e-commerce, or web apps fast with modern tooling.
 - **Key Success Metrics (KPIs):**
-  - [KPI 1 — e.g., Visitor-to-registered-user conversion rate.]
-  - [KPI 2 — e.g., Weekly retention rate.]
-  - [KPI 3 — e.g., Error/waste rate < X%.]
+  - Time from clone to first feature < 30 minutes.
+  - Zero configuration errors on fresh clone (env validation catches everything).
+  - Build passes with zero warnings out of the box.
 
 ### 🚧 Operational Constraints (Grounding)
 
 _Rules that the business logic MUST follow strictly. These are non-negotiable._
 
-- **[Constraint 1 Name]:** [Detailed description + business reason.]
-- **[Constraint 2 Name]:** [Detailed description + business reason.]
+- **Server Components First:** Default to React Server Components. Only use `"use client"` when hooks or interactivity are required.
+- **DAL Pattern:** All database queries MUST go through `src/data/` (Data Access Layer). Never import `db` directly in UI components or page files.
+- **Typed Responses:** All Server Actions MUST return `ActionResponse<T>` (discriminated union from `src/types/index.ts`).
+- **Env Safety:** All environment variables MUST be validated via `src/lib/env.ts`. Never use `process.env` directly except in edge cases (webhooks, build-time skipping).
 - **User Permissions/Roles:**
-  - **[Role 1]:** [What this role can do.]
-  - **[Role 2]:** [What this role can do.]
-- **Platform/Device:** [Mobile-first Web App / Desktop-first / PWA / etc.]
+  - **user:** Default role. Can access protected routes (`/dashboard`, `/settings`).
+  - **admin:** Can access admin routes (`/admin`). Role stored in Clerk `publicMetadata.role`.
+- **Platform/Device:** Mobile-first responsive web app.
 
-### 🚫 Negative Scope (What we are NOT building)
+### 🚫 Negative Scope (What we are NOT building in the boilerplate)
 
-_Do not waste resources suggesting or implementing these. These are explicit "Time Savers"._
+- No specific business logic — this is a **generic starter**, not a product.
+- No database migrations committed — each project generates its own.
+- No CI/CD pipeline — each project configures its own.
+- No testing framework pre-configured — add when the project requires it.
 
-- No [Feature X] — _Reason: [...]._
-- No [Feature Y] — _Reason: [...]._
-- No [Feature Z] — _Reason: [...]._
+### 🏁 Boilerplate Readiness Criteria (Definition of Done)
 
-### 🏁 MVP Launch Criteria (Definition of Done)
-
-_Binary, verifiable conditions. If ALL are checked, the MVP is ready to ship._
-
-- [ ] [Criterion 1 — e.g., User can Register & Login.]
-- [ ] [Criterion 2 — e.g., User can complete the Core Flow.]
-- [ ] [Criterion 3 — e.g., Payments active (Test Mode).]
-- [ ] [Criterion 4 — e.g., Admin dashboard functional.]
-- [ ] Critical bugs resolved.
+- [x] Project builds with zero errors (`npm run build`).
+- [x] Project lints with zero errors (`npm run lint`).
+- [x] All 16+ dependencies installed and configured.
+- [x] All SDK clients initialized (`stripe`, `resend`, `r2`, `db`).
+- [x] Auth middleware functional (Clerk + next-intl).
+- [x] Webhook routes scaffolded (Clerk + Stripe).
+- [x] Example Server Action with full DAL pattern.
+- [x] Example Zustand store, custom hook, Zod schema.
+- [x] Email system with send function + template.
+- [x] i18n configured with `es` (default) and `en`.
+- [x] Environment variable validation with clear error messages.
+- [x] `CONTEXT.MD` fully populated (no placeholders).
 
 ---
 
@@ -90,57 +96,106 @@ _Use only the tools listed below. Do not introduce new libraries without permiss
 
 ### Core Stack
 
-- **Frontend:** Next.js 16 (App Router), React 19
-- **Styling:** Tailwind CSS v4, Mobile-First, Shadcn/UI, Lucide Icons
-- **Backend/BaaS:** NeonDB
-- **Database:** PostgreSQL via NeonDB, ORM Drizzle
-- **State Management:** Zustand (client state), SWR (server state)
-- **Auth:** Clerk
-- **Forms:** React Hook Form + Zod
-- **Payments:** Stripe
-- **Email:** Resend
-- **Storage:** Cloudflare R2
-- **i18n:** next-intl (Spanish default)
+| Category | Technology | Package(s) |
+|---|---|---|
+| **Framework** | Next.js 16 (App Router) | `next@16.1.6` |
+| **UI Library** | React 19 | `react@19.2.3`, `react-dom@19.2.3` |
+| **Styling** | Tailwind CSS v4, Mobile-First | `tailwindcss@^4`, `@tailwindcss/postcss@^4` |
+| **Component Library** | Shadcn/UI + Radix UI | `shadcn`, `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` |
+| **Icons** | Lucide React | `lucide-react` |
+| **Database** | PostgreSQL via NeonDB | `@neondatabase/serverless` |
+| **ORM** | Drizzle ORM | `drizzle-orm`, `drizzle-kit` (dev) |
+| **Auth** | Clerk | `@clerk/nextjs` |
+| **Client State** | Zustand | `zustand` |
+| **Server State** | SWR | `swr` |
+| **Forms** | React Hook Form + Zod | `react-hook-form`, `@hookform/resolvers`, `zod` |
+| **Payments** | Stripe | `stripe`, `@stripe/stripe-js` |
+| **Email** | Resend | `resend` |
+| **Storage** | Cloudflare R2 (S3-compatible) | `@aws-sdk/client-s3` |
+| **i18n** | next-intl (Spanish default) | `next-intl` |
+| **Theming** | next-themes | `next-themes` |
+| **Toasts** | Sonner | `sonner` |
+| **Webhook Verification** | Svix | `svix` |
+| **Formatting** | Prettier + Tailwind plugin | `prettier`, `prettier-plugin-tailwindcss` (dev) |
+| **Linting** | ESLint | `eslint`, `eslint-config-next` (dev) |
 
 ### Coding Guidelines
 
 1.  **Strict Typing:** TypeScript strict mode is mandatory. No `any`.
 2.  **File Naming:** Use `kebab-case` for all file names.
 3.  **Component Strategy:** Functional components only. Prefer Server Components by default; use `"use client"` only when necessary (hooks, interactivity).
-4.  **Error Handling:** All Server Actions must return standardized error objects (e.g., `{ success: boolean; error?: string; data?: T }`).
-5.  **Database Abstraction (DAL):** Isolate ALL database queries into dedicated Server Actions or Data Access Layer functions (e.g., `src/actions/` or `src/services/`). **Never** import DB clients directly in UI components. This ensures the DB layer can be swapped without touching the UI.
+4.  **Error Handling:** All Server Actions must return `ActionResponse<T>` (see `src/types/index.ts`). API routes use `withErrorHandler()` from `src/lib/api.ts`.
+5.  **Database Abstraction (DAL):** Isolate ALL database queries into `src/data/`. **Never** import `db` directly in UI components. This ensures the DB layer can be swapped without touching the UI.
 6.  **Imports:** Use absolute imports with `@/` prefix (configured in `tsconfig.json`).
 7.  **Naming Conventions:**
     - Components: `PascalCase` (e.g., `ProductCard.tsx`)
     - Utilities/hooks: `camelCase` (e.g., `useProducts.ts`)
     - Constants: `UPPER_SNAKE_CASE`
     - DB schemas/types: `snake_case` (matching SQL conventions)
+8.  **Logging:** Use `logger` from `@/lib/logger` instead of `console.log` in production code.
+9.  **Auth in Actions:** Always use `requireAuth()` or `requireRole()` from `@/lib/auth` — never call Clerk APIs directly in actions.
 
 ---
 
 ## 3. 🗺️ App Architecture & Route Inventory
 
-_A comprehensive list of all routes in the application. AI: Keep this updated when routes are added or removed._
-
 ### 📂 Directory Structure
 
 ```
 src/
+├── actions/          # Server Actions (use DAL + auth + typed responses)
+│   └── example.ts    # Reference implementation of the full pattern
 ├── app/              # App Router pages & layouts
-│   ├── (shop)/       # Grouped routes with shared layout
-│   ├── admin/        # Admin-only routes
-│   └── api/          # API routes
-├── actions/          # Server Actions (DAL)
+│   ├── [locale]/     # i18n locale wrapper
+│   │   ├── layout.tsx    # Root layout: ClerkProvider + NextIntlClientProvider + Toaster
+│   │   └── page.tsx      # Homepage (translated card)
+│   └── api/
+│       └── webhooks/
+│           ├── clerk/route.ts   # Clerk webhook (svix verified)
+│           └── stripe/route.ts  # Stripe webhook (signature verified)
 ├── components/
-│   ├── ui/           # Generic primitives (Button, Input, Card...)
-│   └── [feature]/    # Feature-specific components
-├── hooks/            # Custom React hooks
-├── lib/              # Config, utils, DB client, external SDKs
-│   └── db/           # Schema definitions, migrations
-├── schemas/          # Zod validation schemas
-├── store/            # Zustand stores
-├── types/            # Shared TypeScript types/interfaces
-└── i18n/             # Internationalization config & messages
+│   └── ui/           # Shadcn/UI primitives (Button, Card, Input, Label, Sonner)
+├── data/             # Data Access Layer — pure DB queries, no auth/validation
+│   ├── index.ts      # Barrel export
+│   └── users.ts      # CRUD: findById, findByClerkId, findByEmail, create, update, delete
+├── hooks/
+│   └── use-action.ts # useAction<TInput, TOutput> — loading/error state for Server Actions
+├── i18n/             # Internationalization config
+│   ├── config.ts     # Locales: ["es", "en"], default: "es"
+│   ├── navigation.ts # Typed navigation helpers
+│   ├── request.ts    # Server-side locale resolution
+│   └── routing.ts    # next-intl routing definition
+├── lib/              # Config, utils, SDK clients
+│   ├── api.ts        # successResponse, errorResponse, withErrorHandler
+│   ├── auth.ts       # getCurrentUser, requireAuth, requireRole
+│   ├── constants.ts  # APP_CONFIG, PAGINATION, UPLOAD, CACHE, ROLES
+│   ├── env.ts        # Zod-validated serverEnv + clientEnv (fail-fast)
+│   ├── errors.ts     # AppError, NotFoundError, ValidationError, UnauthorizedError, ForbiddenError, RateLimitError
+│   ├── fetcher.ts    # SWR fetcher<T> + FetchError
+│   ├── logger.ts     # Structured logger: info, warn, error, debug
+│   ├── r2.ts         # Cloudflare R2 S3Client
+│   ├── resend.ts     # Resend email client
+│   ├── stripe.ts     # Stripe server client
+│   ├── utils.ts      # cn() — Tailwind class merger
+│   ├── db/
+│   │   ├── index.ts  # Drizzle + NeonDB connection
+│   │   ├── schema.ts # Example users table
+│   │   └── seed.ts   # Database seed script
+│   └── email/
+│       ├── index.ts      # Barrel export
+│       ├── send.ts       # sendEmail() — centralized dispatch via Resend
+│       └── templates/
+│           └── welcome.ts # Welcome email HTML template
+├── messages/         # Translation JSON files
+│   ├── es.json       # Spanish translations (default)
+│   └── en.json       # English translations
+├── middleware.ts     # Clerk auth + next-intl locale middleware
+├── schemas/
+│   └── auth.ts       # Zod schemas: loginSchema, contactSchema
+├── store/
+│   └── app-store.ts  # Zustand store (sidebar state example)
+└── types/
+    └── index.ts      # ActionResponse<T>, PaginatedResponse<T>, ListParams
 ```
 
 ### 📍 Route Inventory (Sitemap)
@@ -149,50 +204,53 @@ src/
 
 | Route | Description |
 |-------|-------------|
-| `/` | [Landing / Redirect logic] |
-| `/login` | [Auth screen] |
-| [Add routes...] | |
+| `/:locale` | Homepage — translated card with CTA |
+| `/:locale/login` | Auth screen (Clerk-managed) |
+| `/:locale/sign-up` | Sign-up screen (Clerk-managed) |
 
 **Protected Routes (requires auth):**
 
 | Route | Description |
 |-------|-------------|
-| [Add routes...] | |
+| `/:locale/dashboard` | User dashboard (scaffold when needed) |
+| `/:locale/settings` | User settings (scaffold when needed) |
 
 **Admin Routes (requires auth + admin role):**
 
 | Route | Description |
 |-------|-------------|
-| [Agregar rutas...] | |
+| `/:locale/admin` | Admin panel (scaffold when needed) |
 
 **API Routes:**
 
 | Route | Method | Description |
 |-------|--------|-------------|
-| [Add routes...] | | |
+| `/api/webhooks/clerk` | POST | Clerk user events (user.created, user.updated, user.deleted) |
+| `/api/webhooks/stripe` | POST | Stripe payment events (checkout.session.completed, invoice.payment_succeeded, customer.subscription.deleted) |
 
 ---
 
 ## 4. 🗄️ Domain Model (High-Level Schema)
 
-_Core entities and relationships. See `[path to schema, e.g., src/lib/db/schema.ts]` for full definitions._
+_Core entities and relationships. See `src/lib/db/schema.ts` for full definitions._
 
-### Entities
+### Entities (Example — replace with your own)
 
-- **[entity_1]:** `id`, `field_1`, `field_2`, `created_at`, `updated_at`
-- **[entity_2]:** `id`, `entity_1_id` (FK), `field_1`, `created_at`
-- [Add entities...]
+- **users:** `id` (uuid, PK), `clerk_id` (text, unique), `email` (text, unique), `name` (text?), `created_at`, `updated_at`
 
 ### Key Relationships
 
 ```
-[entity_1] 1 ──→ N [entity_2]
-[entity_2] N ──→ 1 [entity_3]
+(No relationships yet — this is a single-table example.
+Add your entities and relationships here as you build.)
 ```
 
-### Database Indexes & Policies
+### Database Notes
 
-- [Describe important indexes, RLS policies if applicable, or refer to the schema file.]
+- **ORM:** Drizzle ORM with NeonDB serverless driver.
+- **Config:** `drizzle.config.ts` at project root.
+- **Migrations output:** `./drizzle/` directory.
+- **Schema location:** `src/lib/db/schema.ts`.
 
 ---
 
@@ -200,35 +258,61 @@ _Core entities and relationships. See `[path to schema, e.g., src/lib/db/schema.
 
 _Update this section at the start of every coding session._
 
-- **Phase:** [e.g., MVP Building / Beta / Production]
-- **Current Sprint Focus:** [e.g., Implementing the payments module.]
-- **Active Task:** [Write your current task here with enough detail for the AI to understand what to do.]
-- **Blockers:** [Any current impediment, or "None".]
+- **Phase:** Boilerplate Ready ✅
+- **Current Sprint Focus:** No active sprint — boilerplate is complete. Start your project here.
+- **Active Task:** None — update this field when beginning a new feature.
+- **Blockers:** None.
 
-### Recent Completions (last 3-5)
+### Recent Completions (Boilerplate Setup)
 
-_Gives the AI immediate context on recent momentum. Update when completing a task._
-
-- ✅ [e.g., Admin product CRUD with image upload (Phase 3)]
-- ✅ [e.g., Order confirmation email via Resend (Phase 2)]
-- ✅ [e.g., Cutoff 8:00 AM logic in checkout (Phase 4)]
+- ✅ Full dependency installation (16+ packages)
+- ✅ All SDK clients configured (Stripe, Resend, R2, NeonDB/Drizzle)
+- ✅ Architecture modules: env validation, auth helpers, error hierarchy, logger, API wrappers, SWR fetcher
+- ✅ DAL pattern with example (src/data/users.ts + src/actions/example.ts)
+- ✅ Webhook routes scaffolded (Clerk + Stripe with signature verification)
+- ✅ i18n configured (es/en) with Clerk + next-intl middleware
+- ✅ Email system (sendEmail + welcome template)
+- ✅ `CONTEXT.MD` fully populated
 
 ---
 
 ## 6. 📝 Roadmap & Detailed Scope
 
-### 🟢 Phase 1: [Name] (status: ✅ Completed / 🟡 In Progress / ⬜ Planned)
+### 🟢 Phase 1: Boilerplate Foundation (status: ✅ Completed)
 
-- [x] [Completed feature]
-- [ ] [Pending feature]
+- [x] Next.js 16 + React 19 initialized
+- [x] Tailwind CSS v4 + Shadcn/UI + Lucide Icons configured
+- [x] NeonDB + Drizzle ORM configured with example schema
+- [x] Clerk auth with middleware and auth helpers
+- [x] Stripe client + webhook route
+- [x] Resend client + email send function + template
+- [x] Cloudflare R2 client configured
+- [x] next-intl with es/en locales
+- [x] Zustand store + SWR fetcher + useAction hook
+- [x] React Hook Form + Zod schemas
+- [x] Environment variable validation (Zod)
+- [x] Structured logger
+- [x] Error class hierarchy
+- [x] API route helpers (withErrorHandler)
+- [x] DAL pattern with example CRUD
+- [x] Typed ActionResponse + PaginatedResponse
+- [x] Database seed script
+- [x] Prettier + ESLint configured
+- [x] CONTEXT.MD as SSOT
 
-### 🟡 Phase 2: [Name] (status)
+### 🟡 Phase 2: [Your First Feature] (status: ⬜ Planned)
 
-- [ ] [Pending feature]
+_Update this when you start building your product._
 
-### ⬜ Phase 3: [Name] (status)
+- [ ] Define your domain entities in `src/lib/db/schema.ts`
+- [ ] Run `npm run db:push` to sync schema to NeonDB
+- [ ] Create DAL functions in `src/data/`
+- [ ] Build Server Actions in `src/actions/`
+- [ ] Build UI pages and components
 
-- [ ] [Planned feature]
+### ⬜ Phase 3: [Your Second Feature] (status: ⬜ Planned)
+
+- [ ] (Define when ready)
 
 ---
 
@@ -236,8 +320,16 @@ _Gives the AI immediate context on recent momentum. Update when completing a tas
 
 _Features planned for later versions. Do NOT implement unless explicitly moved to an active Phase._
 
-- [ ] [Future feature 1]
-- [ ] [Future feature 2]
+- [ ] Dark mode (ThemeProvider with next-themes — package already installed)
+- [ ] Add `CLERK_WEBHOOK_SECRET` to `src/lib/env.ts` Zod validation
+- [ ] Add `NEXT_PUBLIC_APP_URL` to `src/lib/env.ts` Zod validation
+- [ ] React Email integration for richer email templates
+- [ ] Rate limiting middleware
+- [ ] Error monitoring (Sentry integration)
+- [ ] Analytics (PostHog / Vercel Analytics)
+- [ ] PWA support
+- [ ] E2E testing (Playwright)
+- [ ] Unit testing (Vitest)
 
 ---
 
@@ -247,19 +339,33 @@ _Visual representation of the main user journey. AI: Use this to understand navi
 
 ```mermaid
 flowchart TD
-    Root[/]
-    Root -->|logged in| Dashboard["/dashboard"]
-    Root -->|no session| Login["/login"]
+    Root["/:locale"]
+    Root -->|logged in| Dashboard["/:locale/dashboard"]
+    Root -->|no session| Login["/:locale/login"]
 
     Login -->|OK| Root
+    SignUp["/:locale/sign-up"] -->|OK| Root
 
-    Dashboard --> Feature1["/feature-1"]
-    Feature1 --> Feature2["/feature-2"]
+    Dashboard --> Settings["/:locale/settings"]
 
-    subgraph ProtectedArea [Requires Auth]
+    subgraph PublicArea [Public Routes]
+        Root
+        Login
+        SignUp
+    end
+
+    subgraph ProtectedArea [Requires Auth — Clerk Middleware]
         Dashboard
-        Feature1
-        Feature2
+        Settings
+    end
+
+    subgraph AdminArea [Requires Auth + Admin Role]
+        Admin["/:locale/admin"]
+    end
+
+    subgraph Webhooks [API Webhooks — No Auth Required]
+        ClerkWH["/api/webhooks/clerk"]
+        StripeWH["/api/webhooks/stripe"]
     end
 ```
 
@@ -271,16 +377,45 @@ _Update this diagram whenever routes or navigation logic change._
 
 _List of required environment variables. AI: NEVER hardcode secrets. NEVER commit `.env` files._
 
+### Server-Side Variables (validated in `src/lib/env.ts`)
+
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DATABASE_URL` | Connection string for the database | `postgresql://...` |
-| `NEXT_PUBLIC_[SERVICE]_KEY` | Public/publishable API key | `pk_test_...` |
-| `[SERVICE]_SECRET_KEY` | Private API key (server-only) | `sk_test_...` |
-| [Add variables...] | | |
+| `DATABASE_URL` | NeonDB PostgreSQL connection string | `postgresql://user:pass@host/db?sslmode=require` |
+| `CLERK_SECRET_KEY` | Clerk private API key | `sk_test_...` |
+| `R2_ACCOUNT_ID` | Cloudflare account ID | `xxxxxxxxxxxxxxxx` |
+| `R2_ACCESS_KEY_ID` | R2 access key | `xxxxxxxxxxxxxxxx` |
+| `R2_SECRET_ACCESS_KEY` | R2 secret key | `xxxxxxxxxxxxxxxxxxxx` |
+| `R2_BUCKET_NAME` | R2 bucket name | `your-bucket-name` |
+| `STRIPE_SECRET_KEY` | Stripe private API key | `sk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | `whsec_...` |
+| `RESEND_API_KEY` | Resend API key | `re_...` |
+| `RESEND_FROM_EMAIL` | Default sender email | `onboarding@resend.dev` |
+
+### Client-Side Variables (validated in `src/lib/env.ts`)
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key | `pk_test_...` |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Sign-in route | `/login` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Sign-up route | `/sign-up` |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL` | Post sign-in redirect | `/` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL` | Post sign-up redirect | `/` |
+| `NEXT_PUBLIC_R2_PUBLIC_URL` | R2 public bucket URL | `https://pub-xxx.r2.dev` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe public key | `pk_test_...` |
+
+### Not Yet Validated (used via `process.env` directly)
+
+| Variable | Description | Used In |
+|----------|-------------|---------|
+| `CLERK_WEBHOOK_SECRET` | Clerk webhook signing secret | `src/app/api/webhooks/clerk/route.ts` |
+| `NEXT_PUBLIC_APP_URL` | App base URL (fallback: `http://localhost:3000`) | `src/lib/constants.ts`, email templates |
+| `SKIP_ENV_VALIDATION` | Skip env validation during build | `src/lib/env.ts` |
 
 **Notes:**
 - File: `.env.local` (local dev), `.env.production` (production — managed in hosting provider).
 - Template: `.env.example` is committed to the repo with placeholder values.
+- Validation: `src/lib/env.ts` validates at import-time and fails fast with clear error messages.
 
 ---
 
@@ -290,13 +425,18 @@ _Common commands for development. AI: Use these instead of guessing._
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start dev server |
+| `npm run dev` | Start dev server (Next.js) |
 | `npm run build` | Production build (for validation) |
-| `npm run lint` | Run linter |
-| `[ORM push command, e.g., npx drizzle-kit push]` | Push schema changes to DB |
-| `[ORM generate command, e.g., npx drizzle-kit generate]` | Generate migrations |
-| `[Seed command, e.g., npx tsx prisma/seed.ts]` | Seed the database |
-| [Add commands...] | |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format all files with Prettier |
+| `npm run format:check` | Check formatting without writing |
+| `npm run db:push` | Push Drizzle schema changes to NeonDB |
+| `npm run db:generate` | Generate Drizzle migrations |
+| `npm run db:migrate` | Run Drizzle migrations |
+| `npm run db:studio` | Open Drizzle Studio (visual DB browser) |
+| `npm run db:seed` | Seed database (`npx tsx src/lib/db/seed.ts`) |
+| `npx shadcn@latest add [component]` | Add a Shadcn/UI component |
 
 ---
 
@@ -304,20 +444,57 @@ _Common commands for development. AI: Use these instead of guessing._
 
 _External services and their configuration. AI: Check this before integrating with any service._
 
-### [Service Name, e.g., Stripe]
-- **Purpose:** [e.g., Payment processing]
-- **SDK/Package:** [e.g., `stripe`, `@stripe/stripe-js`]
-- **Dashboard:** [URL to service dashboard]
-- **Webhook URL:** [e.g., `/api/webhooks/stripe`]
-- **Test/Sandbox Mode:** [Yes/No, + relevant details]
-- **Key env vars:** `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+### Clerk (Authentication)
+- **Purpose:** User authentication, session management, user metadata.
+- **SDK/Package:** `@clerk/nextjs`
+- **Dashboard:** [https://dashboard.clerk.com](https://dashboard.clerk.com)
+- **Webhook URL:** `/api/webhooks/clerk`
+- **Webhook Verification:** `svix` package
+- **Key files:**
+  - `src/lib/auth.ts` — `getCurrentUser()`, `requireAuth()`, `requireRole()`
+  - `src/middleware.ts` — Auth + locale middleware
+  - `src/app/api/webhooks/clerk/route.ts` — Webhook handler
+- **Key env vars:** `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`
 
-### [Service Name, e.g., Resend]
-- **Purpose:** [e.g., Transactional email]
-- **SDK/Package:** [e.g., `resend`]
-- **Key env vars:** `RESEND_API_KEY`
+### Stripe (Payments)
+- **Purpose:** Payment processing, subscriptions, checkout.
+- **SDK/Package:** `stripe` (server), `@stripe/stripe-js` (client)
+- **Dashboard:** [https://dashboard.stripe.com](https://dashboard.stripe.com)
+- **Webhook URL:** `/api/webhooks/stripe`
+- **Local dev:** `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+- **Key files:**
+  - `src/lib/stripe.ts` — Server client initialization
+  - `src/app/api/webhooks/stripe/route.ts` — Webhook handler
+- **Key env vars:** `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 
-_Add more integrations as they are configured._
+### Resend (Email)
+- **Purpose:** Transactional email delivery.
+- **SDK/Package:** `resend`
+- **Dashboard:** [https://resend.com/overview](https://resend.com/overview)
+- **Key files:**
+  - `src/lib/resend.ts` — Client initialization
+  - `src/lib/email/send.ts` — `sendEmail()` function
+  - `src/lib/email/templates/welcome.ts` — Welcome email template
+- **Key env vars:** `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
+
+### Cloudflare R2 (Object Storage)
+- **Purpose:** File/image storage (S3-compatible).
+- **SDK/Package:** `@aws-sdk/client-s3`
+- **Dashboard:** [https://dash.cloudflare.com](https://dash.cloudflare.com) → R2
+- **Key files:**
+  - `src/lib/r2.ts` — S3Client configured for R2 endpoint
+- **Key env vars:** `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `NEXT_PUBLIC_R2_PUBLIC_URL`
+
+### NeonDB (Database)
+- **Purpose:** Serverless PostgreSQL database.
+- **SDK/Package:** `@neondatabase/serverless`, `drizzle-orm`
+- **Dashboard:** [https://console.neon.tech](https://console.neon.tech)
+- **Key files:**
+  - `src/lib/db/index.ts` — Drizzle + Neon connection
+  - `src/lib/db/schema.ts` — Table definitions
+  - `src/lib/db/seed.ts` — Seed script
+  - `drizzle.config.ts` — Drizzle Kit configuration
+- **Key env vars:** `DATABASE_URL`
 
 ---
 
@@ -325,15 +502,16 @@ _Add more integrations as they are configured._
 
 _Hosting, CI/CD, and branch strategy._
 
-- **Hosting:** [e.g., Vercel / Cloudflare Pages / Fly.io]
-- **Production URL:** [e.g., https://app.example.com]
-- **Staging URL:** [e.g., https://staging.example.com (if applicable)]
+- **Hosting:** Vercel (recommended for Next.js)
+- **Production URL:** (Configure after first deploy)
+- **Staging URL:** (Configure if needed)
 - **Branch Strategy:**
   - `main` → Production (auto-deploy).
   - `develop` → Staging (if applicable).
   - Feature branches → Preview deployments.
-- **CI/CD:** [e.g., Vercel auto-deploy on push / GitHub Actions]
-- **Domain/DNS:** [e.g., Managed in Cloudflare / Vercel]
+- **CI/CD:** Vercel auto-deploy on push.
+- **Domain/DNS:** Configure in Vercel dashboard.
+- **Build env:** Set `SKIP_ENV_VALIDATION=true` if env vars are not available during build.
 
 ---
 
@@ -345,14 +523,27 @@ _Document recurring issues, non-obvious patterns, and solutions that the AI shou
 
 | Issue | Solution |
 |-------|----------|
-| [e.g., Hydration mismatch with date formatting] | [e.g., Use `suppressHydrationWarning` on date elements or format only on client.] |
-| [e.g., Next.js Image component requires explicit domains] | [e.g., Add domains to `next.config.ts` → `images.remotePatterns`.] |
-| [Add known issues...] | |
+| Hydration mismatch with dates | Use `suppressHydrationWarning` on elements with dates, or format only on the client. |
+| Next.js Image requires explicit domains | Add domains to `next.config.ts` → `images.remotePatterns`. Currently configured: `img.clerk.com`. |
+| Env vars not available during `npm run build` | Set `SKIP_ENV_VALIDATION=true` in your build environment. |
+| Stripe webhook needs raw body | The Stripe webhook route uses `req.text()` (not `req.json()`) to get the raw body for signature verification. |
+| Clerk webhook needs svix headers | The Clerk webhook route verifies `svix-id`, `svix-timestamp`, `svix-signature` headers. |
+| next-intl requires `params` to be awaited | In Next.js 16, `params` is a `Promise`. Always `await params` in layouts/pages. |
+| Drizzle env vars at config level | `drizzle.config.ts` uses `process.env.DATABASE_URL!` directly (not `serverEnv`) because it runs outside Next.js. |
 
 ### Patterns & Conventions
 
-- **[Pattern Name]:** [Description — e.g., "All form submissions go through Server Actions that return `{ success, error?, data? }` objects. The UI checks `result.success` before proceeding."]
-- **[Pattern Name]:** [Description — e.g., "Admin routes are protected by Clerk middleware + `publicMetadata.role === 'admin'` check in the layout."]
+- **Server Action Pattern:** All actions follow: `requireAuth()` → validate input → call DAL function → log → return `ActionResponse<T>`. See `src/actions/example.ts` as the reference implementation.
+- **DAL Pattern:** All direct DB access is in `src/data/*.ts`. Functions are pure query functions (no auth, no validation, no logging). Import via `@/data`.
+- **API Route Pattern:** API routes use `withErrorHandler()` from `src/lib/api.ts` for automatic error catching and logging. Use `successResponse()` and `errorResponse()` for consistent JSON responses.
+- **Client Hook Pattern:** Use `useAction(serverAction)` from `src/hooks/use-action.ts` to call Server Actions with automatic loading/error state management.
+- **Email Pattern:** Use `sendEmail()` from `src/lib/email` with HTML template functions from `src/lib/email/templates/`.
+- **Auth Guard Pattern:**
+  - Pages/Layouts: Protected by Clerk middleware in `src/middleware.ts`.
+  - Server Actions: Use `requireAuth()` or `requireRole()` from `@/lib/auth`.
+  - Admin routes matched by `/:locale/admin(.*)` in middleware.
+- **Zustand Pattern:** Store files in `src/store/`. Access via hook: `const { value } = useAppStore()`.
+- **SWR Pattern:** Use `fetcher` from `@/lib/fetcher` as the default SWR fetcher: `useSWR<T>(url, fetcher)`.
 
 ---
 
@@ -360,8 +551,17 @@ _Document recurring issues, non-obvious patterns, and solutions that the AI shou
 
 _Links to documentation, design files, and other resources that the AI or developer may need._
 
-- **Design (Figma/Mockups):** [URL or "N/A"]
-- **API Documentation:** [URL or "N/A"]
-- **Brand Guide / Style Guide:** [URL or "N/A"]
-- **Business Requirements Doc:** [URL or "N/A"]
-- **Related Repos:** [URLs or "N/A"]
+- **Next.js 16 Docs:** [https://nextjs.org/docs](https://nextjs.org/docs)
+- **React 19 Docs:** [https://react.dev](https://react.dev)
+- **Tailwind CSS v4 Docs:** [https://tailwindcss.com/docs](https://tailwindcss.com/docs)
+- **Shadcn/UI Docs:** [https://ui.shadcn.com](https://ui.shadcn.com)
+- **Drizzle ORM Docs:** [https://orm.drizzle.team](https://orm.drizzle.team)
+- **Clerk Docs:** [https://clerk.com/docs](https://clerk.com/docs)
+- **Stripe Docs:** [https://docs.stripe.com](https://docs.stripe.com)
+- **Resend Docs:** [https://resend.com/docs](https://resend.com/docs)
+- **next-intl Docs:** [https://next-intl.dev](https://next-intl.dev)
+- **Zustand Docs:** [https://zustand.docs.pmnd.rs](https://zustand.docs.pmnd.rs)
+- **SWR Docs:** [https://swr.vercel.app](https://swr.vercel.app)
+- **Zod Docs:** [https://zod.dev](https://zod.dev)
+- **Design (Figma/Mockups):** N/A
+- **Brand Guide / Style Guide:** N/A
