@@ -34,15 +34,31 @@ Production-ready Next.js 16 boilerplate with auth, payments, email, storage, i18
 
 ## 🚀 Quick Start
 
-### 1. Clone & Install
+### 1. Create Your Project from Template
+
+Click **"Use this template"** on GitHub, or via CLI:
 
 ```bash
-git clone <your-repo-url> my-project
+gh repo create my-project --template hwong/nextlaunch --clone
 cd my-project
+```
+
+### 2. Run Setup Script
+
+This renames all `NextLaunch` references to your project name:
+
+```bash
+chmod +x setup.sh
+./setup.sh MyProjectName
+```
+
+### 3. Install Dependencies
+
+```bash
 npm install
 ```
 
-### 2. Configure Environment
+### 4. Configure Environment
 
 ```bash
 cp .env.example .env.local
@@ -58,19 +74,19 @@ Fill in your API keys:
 | **Resend** | [resend.com](https://resend.com) |
 | **Cloudflare R2** | [dash.cloudflare.com](https://dash.cloudflare.com) → R2 |
 
-### 3. Push Database Schema
+### 5. Push Database Schema
 
 ```bash
 npm run db:push
 ```
 
-### 4. (Optional) Seed Database
+### 6. (Optional) Seed Database
 
 ```bash
 npm run db:seed
 ```
 
-### 5. Start Development
+### 7. Start Development
 
 ```bash
 npm run dev
