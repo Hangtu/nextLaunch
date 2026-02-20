@@ -112,6 +112,7 @@ _Use only the tools listed below. Do not introduce new libraries without permiss
 | **Payments** | Stripe | `stripe`, `@stripe/stripe-js` |
 | **Email** | Resend | `resend` |
 | **Storage** | Cloudflare R2 (S3-compatible) | `@aws-sdk/client-s3` |
+| **Image upload (R2)** | FilePond (default) | `react-filepond`, `filepond` — see Section 13 (Image upload pattern) |
 | **i18n** | next-intl (Spanish default) | `next-intl` |
 | **Theming** | next-themes | `next-themes` |
 | **Toasts** | Sonner | `sonner` |
@@ -134,6 +135,7 @@ _Use only the tools listed below. Do not introduce new libraries without permiss
     - DB schemas/types: `snake_case` (matching SQL conventions)
 8.  **Logging:** Use `logger` from `@/lib/logger` instead of `console.log` in production code.
 9.  **Auth in Actions:** Always use `requireAuth()` or `requireRole()` from `@/lib/auth` — never call Clerk APIs directly in actions.
+10. **No native browser UI:** Do NOT use `window.alert`, `window.confirm`, `window.prompt`, or any native browser dialogs. Use only the defined UI stack: **Shadcn/UI** (e.g. `AlertDialog` for confirmations, `Dialog` for modals) and **Sonner** for toasts and ephemeral feedback. All user feedback must go through these components.
 
 ---
 
@@ -484,6 +486,7 @@ _External services and their configuration. AI: Check this before integrating wi
 - **Key files:**
   - `src/lib/r2.ts` — S3Client configured for R2 endpoint
 - **Key env vars:** `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `NEXT_PUBLIC_R2_PUBLIC_URL`
+- **Image upload UI:** Use **FilePond** (`react-filepond` + `filepond`) as the default library for image uploads to R2. Alternative: **Uppy** (`@uppy/react`) if you need multi-source pickers (e.g. Google Drive, URL) or a dashboard-style UI. Do not build custom upload UX from scratch; use one of these and wire it to a Server Action or API route that calls the R2 client. Upload limits and allowed types are in `src/lib/constants.ts` (`UPLOAD`).
 
 ### NeonDB (Database)
 - **Purpose:** Serverless PostgreSQL database.
@@ -544,6 +547,7 @@ _Document recurring issues, non-obvious patterns, and solutions that the AI shou
   - Admin routes matched by `/:locale/admin(.*)` in proxy.
 - **Zustand Pattern:** Store files in `src/store/`. Access via hook: `const { value } = useAppStore()`.
 - **SWR Pattern:** Use `fetcher` from `@/lib/fetcher` as the default SWR fetcher: `useSWR<T>(url, fetcher)`.
+- **Image upload pattern:** For uploading images to R2, use the FilePond component (or Uppy if preferred). Server side: create a Server Action or API route that accepts `FormData`, validates file type/size with `UPLOAD` from `@/lib/constants`, and uses `PutObjectCommand` from `@aws-sdk/client-s3` with the R2 client from `@/lib/r2`. Return the public URL using `NEXT_PUBLIC_R2_PUBLIC_URL` + object key. Do not use native `<input type="file">` without wrapping it in FilePond/Uppy for progress, preview, and validation.
 
 ---
 
