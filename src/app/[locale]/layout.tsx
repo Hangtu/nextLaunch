@@ -5,6 +5,8 @@ import { getMessages } from "next-intl/server";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 
+import { APP_CONFIG } from "@/lib/constants";
+
 import "../globals.css";
 
 const geistSans = Geist({
@@ -18,8 +20,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NextLaunch",
-  description: "Production-ready Next.js boilerplate",
+  metadataBase: new URL(APP_CONFIG.url),
+  title: {
+    default: APP_CONFIG.name,
+    template: `%s | ${APP_CONFIG.name}`,
+  },
+  description: APP_CONFIG.description,
+  openGraph: {
+    title: APP_CONFIG.name,
+    description: APP_CONFIG.description,
+    url: APP_CONFIG.url,
+    siteName: APP_CONFIG.name,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: APP_CONFIG.name,
+    description: APP_CONFIG.description,
+  },
 };
 
 export default async function LocaleLayout({

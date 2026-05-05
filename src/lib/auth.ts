@@ -1,3 +1,4 @@
+import "server-only";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
 import type { Role } from "@/lib/constants";
@@ -13,24 +14,24 @@ import { ForbiddenError, UnauthorizedError } from "@/lib/errors";
  * Returns `null` if not authenticated (does not throw).
  */
 export async function getCurrentUser() {
-    const { userId } = await auth();
+  const { userId } = await auth();
 
-    if (!userId) {
-        return null;
-    }
+  if (!userId) {
+    return null;
+  }
 
-    const user = await currentUser();
+  const user = await currentUser();
 
-    return user
-        ? {
-            id: userId,
-            email: user.emailAddresses[0]?.emailAddress ?? null,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            imageUrl: user.imageUrl,
-            role: (user.publicMetadata?.role as Role) ?? ROLES.user,
-        }
-        : null;
+  return user
+    ? {
+        id: userId,
+        email: user.emailAddresses[0]?.emailAddress ?? null,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        imageUrl: user.imageUrl,
+        role: (user.publicMetadata?.role as Role) ?? ROLES.user,
+      }
+    : null;
 }
 
 /**
@@ -44,13 +45,13 @@ export async function getCurrentUser() {
  * ```
  */
 export async function requireAuth() {
-    const user = await getCurrentUser();
+  const user = await getCurrentUser();
 
-    if (!user) {
-        throw new UnauthorizedError();
-    }
+  if (!user) {
+    throw new UnauthorizedError();
+  }
 
-    return user;
+  return user;
 }
 
 /**
@@ -62,11 +63,11 @@ export async function requireAuth() {
  * ```
  */
 export async function requireRole(role: Role) {
-    const user = await requireAuth();
+  const user = await requireAuth();
 
-    if (user.role !== role) {
-        throw new ForbiddenError(`Role "${role}" is required.`);
-    }
+  if (user.role !== role) {
+    throw new ForbiddenError(`Role "${role}" is required.`);
+  }
 
-    return user;
+  return user;
 }

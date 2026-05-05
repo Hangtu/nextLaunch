@@ -70,15 +70,13 @@ _Rules that the business logic MUST follow strictly. These are non-negotiable._
 
 - No specific business logic — this is a **generic starter**, not a product.
 - No database migrations committed — each project generates its own.
-- No CI/CD pipeline — each project configures its own.
-- No testing framework pre-configured — add when the project requires it.
+- No E2E/unit testing framework pre-configured — add when the project requires it.
 
 ### 🏁 Boilerplate Readiness Criteria (Definition of Done)
 
 - [x] Project builds with zero errors (`npm run build`).
 - [x] Project lints with zero errors (`npm run lint`).
-- [x] All 16+ dependencies installed and configured.
-- [x] All SDK clients initialized (`stripe`, `resend`, `r2`, `db`).
+- [x] All SDK clients initialized (`stripe`, `resend`, `r2`, `db`, `sentry`).
 - [x] Auth proxy functional (Clerk + next-intl).
 - [x] Webhook routes scaffolded (Clerk + Stripe).
 - [x] Example Server Action with full DAL pattern.
@@ -86,6 +84,12 @@ _Rules that the business logic MUST follow strictly. These are non-negotiable._
 - [x] Email system with send function + template.
 - [x] i18n configured with `es` (default) and `en`.
 - [x] Environment variable validation with clear error messages.
+- [x] Error monitoring (Sentry) fully configured with logger integration.
+- [x] Code quality gates (Husky + lint-staged + pre-push build).
+- [x] CI/CD pipeline (GitHub Actions) with typecheck, lint, build.
+- [x] SEO scaffold (robots.ts, sitemap.ts, OG metadata, metadataBase).
+- [x] PWA scaffold (manifest.ts).
+- [x] React Compiler enabled.
 - [x] `CONTEXT.MD` fully populated (no placeholders).
 
 ---
@@ -99,7 +103,7 @@ _Use only the tools listed below. Do not introduce new libraries without permiss
 | Category | Technology | Package(s) |
 |---|---|---|
 | **Framework** | Next.js 16 (App Router) | `next@16.1.6` |
-| **UI Library** | React 19 | `react@19.2.3`, `react-dom@19.2.3` |
+| **UI Library** | React 19 + Compiler | `react@19.2.3`, `react-dom@19.2.3` |
 | **Styling** | Tailwind CSS v4, Mobile-First | `tailwindcss@^4`, `@tailwindcss/postcss@^4` |
 | **Component Library** | Shadcn/UI + Radix UI | `shadcn`, `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` |
 | **Icons** | Lucide React | `lucide-react` |
@@ -117,8 +121,11 @@ _Use only the tools listed below. Do not introduce new libraries without permiss
 | **Theming** | next-themes | `next-themes` |
 | **Toasts** | Sonner | `sonner` |
 | **Webhook Verification** | Svix | `svix` |
+| **Error Monitoring** | Sentry | `@sentry/nextjs` |
+| **Server Guards** | server-only | `server-only` |
 | **Formatting** | Prettier + Tailwind plugin | `prettier`, `prettier-plugin-tailwindcss` (dev) |
-| **Linting** | ESLint | `eslint`, `eslint-config-next` (dev) |
+| **Linting** | ESLint + Prettier compat | `eslint`, `eslint-config-next`, `eslint-config-prettier` (dev) |
+| **Code Quality** | Husky + lint-staged | `husky`, `lint-staged` (dev) |
 
 ### Coding Guidelines
 
@@ -133,9 +140,13 @@ _Use only the tools listed below. Do not introduce new libraries without permiss
     - Utilities/hooks: `camelCase` (e.g., `useProducts.ts`)
     - Constants: `UPPER_SNAKE_CASE`
     - DB schemas/types: `snake_case` (matching SQL conventions)
-8.  **Logging:** Use `logger` from `@/lib/logger` instead of `console.log` in production code.
+8.  **Logging:** Use `logger` from `@/lib/logger` instead of `console.log` in production code. `logger.error()` auto-forwards to Sentry when DSN is configured.
 9.  **Auth in Actions:** Always use `requireAuth()` or `requireRole()` from `@/lib/auth` — never call Clerk APIs directly in actions.
 10. **No native browser UI:** Do NOT use `window.alert`, `window.confirm`, `window.prompt`, or any native browser dialogs. Use only the defined UI stack: **Shadcn/UI** (e.g. `AlertDialog` for confirmations, `Dialog` for modals) and **Sonner** for toasts and ephemeral feedback. All user feedback must go through these components.
+11. **Server-Only Guards:** Server-side library files (`src/lib/api.ts`, `src/lib/auth.ts`) MUST use `import "server-only"` to prevent accidental client-side imports.
+12. **React Compiler:** The project uses the React Compiler (`reactCompiler: true`). Manual `useMemo`, `useCallback`, and `React.memo` are generally unnecessary.
+13. **Component Size Limits:** Files SHOULD stay under **300 lines**. If approaching 200+ lines, evaluate splitting into sub-components or hooks.
+14. **JSDoc Headers:** Every `.ts` / `.tsx` file SHOULD have a `@fileoverview` JSDoc block explaining: (a) what the file does, (b) where it fits, (c) key dependencies.
 
 ---
 
@@ -149,12 +160,19 @@ src/
 │   └── example.ts    # Reference implementation of the full pattern
 ├── app/              # App Router pages & layouts
 │   ├── [locale]/     # i18n locale wrapper
-│   │   ├── layout.tsx    # Root layout: ClerkProvider + NextIntlClientProvider + Toaster
+│   │   ├── layout.tsx    # Root layout: ClerkProvider + NextIntlClientProvider + Toaster + SEO metadata
 │   │   └── page.tsx      # Homepage (translated card)
-│   └── api/
-│       └── webhooks/
-│           ├── clerk/route.ts   # Clerk webhook (svix verified)
-│           └── stripe/route.ts  # Stripe webhook (signature verified)
+│   ├── api/
+│   │   └── webhooks/
+│   │       ├── clerk/route.ts   # Clerk webhook (svix verified)
+│   │       └── stripe/route.ts  # Stripe webhook (signature verified)
+│   ├── global-error.tsx  # Error boundary (Sentry + user-friendly UI)
+│   ├── not-found.tsx     # 404 page (premium UI)
+│   ├── robots.ts         # SEO crawl rules
+│   ├── sitemap.ts        # Dynamic SEO sitemap
+│   ├── manifest.ts       # PWA manifest
+│   ├── favicon.ico
+│   └── globals.css
 ├── components/
 │   └── ui/           # Shadcn/UI primitives (Button, Card, Input, Label, Sonner)
 ├── data/             # Data Access Layer — pure DB queries, no auth/validation
@@ -168,14 +186,16 @@ src/
 │   ├── request.ts    # Server-side locale resolution
 │   └── routing.ts    # next-intl routing definition
 ├── lib/              # Config, utils, SDK clients
-│   ├── api.ts        # successResponse, errorResponse, withErrorHandler
-│   ├── auth.ts       # getCurrentUser, requireAuth, requireRole
+│   ├── api.ts        # successResponse, errorResponse, withErrorHandler (server-only)
+│   ├── auth.ts       # getCurrentUser, requireAuth, requireRole (server-only)
 │   ├── constants.ts  # APP_CONFIG, PAGINATION, UPLOAD, CACHE, ROLES
 │   ├── env.ts        # Zod-validated serverEnv + clientEnv (fail-fast)
 │   ├── errors.ts     # AppError, NotFoundError, ValidationError, UnauthorizedError, ForbiddenError, RateLimitError
+│   ├── error-messages.ts # Friendly UX error messages (pattern-based matching)
 │   ├── fetcher.ts    # SWR fetcher<T> + FetchError
-│   ├── logger.ts     # Structured logger: info, warn, error, debug
+│   ├── logger.ts     # Structured logger with Sentry auto-forwarding
 │   ├── r2.ts         # Cloudflare R2 S3Client
+│   ├── rate-limit.ts # In-memory rate limiter (MVP, upgrade to Redis for prod)
 │   ├── resend.ts     # Resend email client
 │   ├── stripe.ts     # Stripe server client
 │   ├── utils.ts      # cn() — Tailwind class merger
@@ -191,6 +211,9 @@ src/
 ├── messages/         # Translation JSON files
 │   ├── es.json       # Spanish translations (default)
 │   └── en.json       # English translations
+├── instrumentation.ts    # Sentry server + edge init (Next.js instrumentation hook)
+├── sentry.server.config.ts # Sentry server runtime config
+├── sentry.edge.config.ts   # Sentry edge runtime config
 ├── proxy.ts          # Clerk auth + next-intl locale proxy (Next.js 16)
 ├── schemas/
 │   └── auth.ts       # Zod schemas: loginSchema, contactSchema
@@ -198,6 +221,22 @@ src/
 │   └── app-store.ts  # Zustand store (sidebar state example)
 └── types/
     └── index.ts      # ActionResponse<T>, PaginatedResponse<T>, ListParams
+
+# Project root (additional files)
+instrumentation-client.ts  # Sentry client-side init (session replay)
+.editorconfig              # Editor formatting consistency
+.prettierignore            # Prettier exclusions
+.husky/
+├── pre-commit             # lint-staged + typecheck
+└── pre-push               # build verification
+.github/
+├── workflows/ci.yml       # CI pipeline (typecheck + lint + build)
+├── dependabot.yml         # Auto dependency updates
+└── PULL_REQUEST_TEMPLATE.md
+CONTRIBUTING.md            # Developer guide
+CHANGELOG.md               # Version history
+docs/
+└── DEPLOY.md              # Deployment guide
 ```
 
 ### 📍 Route Inventory (Sitemap)
@@ -326,12 +365,12 @@ _Features planned for later versions. Do NOT implement unless explicitly moved t
 - [ ] Add `CLERK_WEBHOOK_SECRET` to `src/lib/env.ts` Zod validation
 - [ ] Add `NEXT_PUBLIC_APP_URL` to `src/lib/env.ts` Zod validation
 - [ ] React Email integration for richer email templates
-- [ ] Rate limiting proxy
-- [ ] Error monitoring (Sentry integration)
+- [ ] Upgrade rate limiting to Redis (Upstash) for multi-instance production
 - [ ] Analytics (PostHog / Vercel Analytics)
-- [ ] PWA support
 - [ ] E2E testing (Playwright)
 - [ ] Unit testing (Vitest)
+- [ ] OG Image generation (dynamic `opengraph-image.tsx`)
+- [ ] LLMs.txt for AI discoverability (`/llms.txt`, `/llms-full.txt`)
 
 ---
 
@@ -410,6 +449,10 @@ _List of required environment variables. AI: NEVER hardcode secrets. NEVER commi
 
 | Variable | Description | Used In |
 |----------|-------------|---------|
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (safe to expose publicly) | `instrumentation-client.ts`, `src/instrumentation.ts`, `src/lib/logger.ts` |
+| `SENTRY_ORG` | Sentry organization slug | `next.config.ts` (source map upload) |
+| `SENTRY_PROJECT` | Sentry project slug | `next.config.ts` (source map upload) |
+| `SENTRY_AUTH_TOKEN` | Sentry auth token for source map uploads | `next.config.ts` (CI/CD only) |
 | `CLERK_WEBHOOK_SECRET` | Clerk webhook signing secret | `src/app/api/webhooks/clerk/route.ts` |
 | `NEXT_PUBLIC_APP_URL` | App base URL (fallback: `http://localhost:3000`) | `src/lib/constants.ts`, email templates |
 | `SKIP_ENV_VALIDATION` | Skip env validation during build | `src/lib/env.ts` |
@@ -431,8 +474,12 @@ _Common commands for development. AI: Use these instead of guessing._
 | `npm run build` | Production build (for validation) |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Run ESLint with auto-fix |
 | `npm run format` | Format all files with Prettier |
 | `npm run format:check` | Check formatting without writing |
+| `npm run typecheck` | TypeScript strict check (`tsc --noEmit`) |
+| `npm run validate` | Full CI check (typecheck + lint + format + build) |
+| `npm run clean` | Delete `.next` cache (fixes stale type errors) |
 | `npm run db:push` | Push Drizzle schema changes to NeonDB |
 | `npm run db:generate` | Generate Drizzle migrations |
 | `npm run db:migrate` | Run Drizzle migrations |
@@ -499,6 +546,21 @@ _External services and their configuration. AI: Check this before integrating wi
   - `drizzle.config.ts` — Drizzle Kit configuration
 - **Key env vars:** `DATABASE_URL`
 
+### Sentry (Error Monitoring)
+- **Purpose:** Error tracking, performance monitoring, and session replay in production.
+- **SDK/Package:** `@sentry/nextjs`
+- **Dashboard:** [https://sentry.io](https://sentry.io)
+- **Key files:**
+  - `instrumentation-client.ts` — Client-side Sentry init (session replay, error tracking)
+  - `src/instrumentation.ts` — Server-side + Edge Sentry init (Next.js instrumentation hook)
+  - `src/sentry.server.config.ts` — Server runtime Sentry config
+  - `src/sentry.edge.config.ts` — Edge runtime Sentry config
+  - `next.config.ts` — Wrapped with `withSentryConfig` for source map uploads
+  - `src/app/global-error.tsx` — Global error boundary with `Sentry.captureException`
+  - `src/lib/logger.ts` — `logger.error()` automatically forwards to Sentry
+- **Key env vars:** `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`
+- **Setup:** Create a project in Sentry, set the DSN in `.env.local`, and errors are automatically captured.
+
 ---
 
 ## 12. 🚀 Deployment
@@ -512,7 +574,8 @@ _Hosting, CI/CD, and branch strategy._
   - `main` → Production (auto-deploy).
   - `develop` → Staging (if applicable).
   - Feature branches → Preview deployments.
-- **CI/CD:** Vercel auto-deploy on push.
+- **CI/CD:** GitHub Actions (`.github/workflows/ci.yml`) runs typecheck + lint + format + build on every push/PR. Vercel auto-deploys on merge.
+- **Dependency Updates:** Dependabot (`.github/dependabot.yml`) creates weekly PRs for npm and GitHub Actions updates.
 - **Domain/DNS:** Configure in Vercel dashboard.
 - **Build env:** Set `SKIP_ENV_VALIDATION=true` if env vars are not available during build.
 
@@ -533,6 +596,10 @@ _Document recurring issues, non-obvious patterns, and solutions that the AI shou
 | Clerk webhook needs svix headers | The Clerk webhook route verifies `svix-id`, `svix-timestamp`, `svix-signature` headers. |
 | next-intl requires `params` to be awaited | In Next.js 16, `params` is a `Promise`. Always `await params` in layouts/pages. |
 | Drizzle env vars at config level | `drizzle.config.ts` uses `process.env.DATABASE_URL!` directly (not `serverEnv`) because it runs outside Next.js. |
+| Neon HTTP no transactions | The `@neondatabase/serverless` HTTP driver does NOT support `db.transaction()`. Execute multi-table writes sequentially. |
+| Typecheck fails for deleted routes | If `.next/types/validator.ts` references deleted files, run `npm run clean` then `npm run typecheck`. |
+| Zod date coercion for DB | When accepting dates from forms, use `z.coerce.date()` in Zod schemas. Raw strings sent to Drizzle timestamp fields fail with `value.toISOString is not a function`. |
+| Sentry optional | If `NEXT_PUBLIC_SENTRY_DSN` is not set, the logger and instrumentation gracefully degrade to console-only — no errors. |
 
 ### Patterns & Conventions
 
@@ -548,6 +615,11 @@ _Document recurring issues, non-obvious patterns, and solutions that the AI shou
 - **Zustand Pattern:** Store files in `src/store/`. Access via hook: `const { value } = useAppStore()`.
 - **SWR Pattern:** Use `fetcher` from `@/lib/fetcher` as the default SWR fetcher: `useSWR<T>(url, fetcher)`.
 - **Image upload pattern:** For uploading images to R2, use the FilePond component (or Uppy if preferred). Server side: create a Server Action or API route that accepts `FormData`, validates file type/size with `UPLOAD` from `@/lib/constants`, and uses `PutObjectCommand` from `@aws-sdk/client-s3` with the R2 client from `@/lib/r2`. Return the public URL using `NEXT_PUBLIC_R2_PUBLIC_URL` + object key. Do not use native `<input type="file">` without wrapping it in FilePond/Uppy for progress, preview, and validation.
+- **Rate Limiting Pattern:** Use `checkRateLimit(identifier)` from `@/lib/rate-limit` in Server Actions or API routes that accept public input (RSVP, password verification, uploads). Combine with `getClientIdentifier(headers)` for IP-based limiting.
+- **Friendly Error Pattern:** Use `getFriendlyErrorMessage(error)` from `@/lib/error-messages` to convert technical errors into user-facing messages. Use in toast notifications and error displays.
+- **Lazy Loading Pattern:** Heavy client libraries should be loaded via `next/dynamic` with `ssr: false`. `optimizePackageImports` in `next.config.ts` handles tree-shaking for heavy packages.
+- **SEO Pattern:** Root layout sets `metadataBase` for canonical URL resolution. Pages use `generateMetadata` with OG + Twitter Card fields. `robots.ts` controls crawl rules. `sitemap.ts` dynamically lists public content.
+- **Code Quality Pattern:** Husky pre-commit runs lint-staged (prettier + eslint) + typecheck. Pre-push runs full build. CI (GitHub Actions) runs validate on push/PR. Run `npm run validate` locally to simulate CI.
 
 ---
 
@@ -567,5 +639,7 @@ _Links to documentation, design files, and other resources that the AI or develo
 - **Zustand Docs:** [https://zustand.docs.pmnd.rs](https://zustand.docs.pmnd.rs)
 - **SWR Docs:** [https://swr.vercel.app](https://swr.vercel.app)
 - **Zod Docs:** [https://zod.dev](https://zod.dev)
+- **Sentry Docs:** [https://docs.sentry.io/platforms/javascript/guides/nextjs/](https://docs.sentry.io/platforms/javascript/guides/nextjs/)
+- **Husky Docs:** [https://typicode.github.io/husky/](https://typicode.github.io/husky/)
 - **Design (Figma/Mockups):** N/A
 - **Brand Guide / Style Guide:** N/A
