@@ -4,15 +4,18 @@
 // =============================================================================
 
 interface WelcomeEmailProps {
-    name: string;
-    appName?: string;
+  name: string;
+  appName?: string;
 }
 
 /**
  * Welcome email sent after user registration.
  */
-export function welcomeEmailHtml({ name, appName = "NextLaunch" }: WelcomeEmailProps): string {
-    return `
+export function welcomeEmailHtml({
+  name,
+  appName = "NextLaunch",
+}: WelcomeEmailProps): string {
+  return `
 <!DOCTYPE html>
 <html lang="es">
 <head>

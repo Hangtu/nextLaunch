@@ -20,48 +20,50 @@ import type { ActionResponse } from "@/types";
  * ```
  */
 export function useAction<TInput, TOutput>(
-    action: (input: TInput) => Promise<ActionResponse<TOutput>>
+  action: (input: TInput) => Promise<ActionResponse<TOutput>>
 ) {
-    const [error, setError] = useState<string | undefined>(undefined);
-    const [data, setData] = useState<TOutput | undefined>(undefined);
-    const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [data, setData] = useState<TOutput | undefined>(undefined);
+  const [isPending, startTransition] = useTransition();
 
-    const execute = useCallback(
-        async (input: TInput): Promise<ActionResponse<TOutput> | undefined> => {
-            setError(undefined);
-            setData(undefined);
+  const execute = useCallback(
+    async (input: TInput): Promise<ActionResponse<TOutput> | undefined> => {
+      setError(undefined);
+      setData(undefined);
 
-            return new Promise((resolve) => {
-                startTransition(async () => {
-                    try {
-                        const result = await action(input);
+      return new Promise((resolve) => {
+        startTransition(async () => {
+          try {
+            const result = await action(input);
 
-                        if (!result.success) {
-                            setError(result.error);
-                        } else {
-                            setData(result.data);
-                        }
+            if (!result.success) {
+              setError(result.error);
+            } else {
+              setData(result.data);
+            }
 
-                        resolve(result);
-                    } catch (err) {
-                        const errorMessage =
-                            err instanceof Error ? err.message : "An unexpected error occurred.";
-                        setError(errorMessage);
-                        resolve({
-                            success: false,
-                            error: errorMessage,
-                        });
-                    }
-                });
+            resolve(result);
+          } catch (err) {
+            const errorMessage =
+              err instanceof Error
+                ? err.message
+                : "An unexpected error occurred.";
+            setError(errorMessage);
+            resolve({
+              success: false,
+              error: errorMessage,
             });
-        },
-        [action]
-    );
+          }
+        });
+      });
+    },
+    [action]
+  );
 
-    return {
-        execute,
-        isLoading: isPending,
-        error,
-        data,
-    };
+  return {
+    execute,
+    isLoading: isPending,
+    error,
+    data,
+  };
 }

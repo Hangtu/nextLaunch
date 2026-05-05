@@ -100,32 +100,32 @@ _Use only the tools listed below. Do not introduce new libraries without permiss
 
 ### Core Stack
 
-| Category | Technology | Package(s) |
-|---|---|---|
-| **Framework** | Next.js 16 (App Router) | `next@16.1.6` |
-| **UI Library** | React 19 + Compiler | `react@19.2.3`, `react-dom@19.2.3` |
-| **Styling** | Tailwind CSS v4, Mobile-First | `tailwindcss@^4`, `@tailwindcss/postcss@^4` |
-| **Component Library** | Shadcn/UI + Radix UI | `shadcn`, `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` |
-| **Icons** | Lucide React | `lucide-react` |
-| **Database** | PostgreSQL via NeonDB | `@neondatabase/serverless` |
-| **ORM** | Drizzle ORM | `drizzle-orm`, `drizzle-kit` (dev) |
-| **Auth** | Clerk | `@clerk/nextjs` |
-| **Client State** | Zustand | `zustand` |
-| **Server State** | SWR | `swr` |
-| **Forms** | React Hook Form + Zod | `react-hook-form`, `@hookform/resolvers`, `zod` |
-| **Payments** | Stripe | `stripe`, `@stripe/stripe-js` |
-| **Email** | Resend | `resend` |
-| **Storage** | Cloudflare R2 (S3-compatible) | `@aws-sdk/client-s3` |
-| **Image upload (R2)** | FilePond (default) | `react-filepond`, `filepond` — see Section 13 (Image upload pattern) |
-| **i18n** | next-intl (Spanish default) | `next-intl` |
-| **Theming** | next-themes | `next-themes` |
-| **Toasts** | Sonner | `sonner` |
-| **Webhook Verification** | Svix | `svix` |
-| **Error Monitoring** | Sentry | `@sentry/nextjs` |
-| **Server Guards** | server-only | `server-only` |
-| **Formatting** | Prettier + Tailwind plugin | `prettier`, `prettier-plugin-tailwindcss` (dev) |
-| **Linting** | ESLint + Prettier compat | `eslint`, `eslint-config-next`, `eslint-config-prettier` (dev) |
-| **Code Quality** | Husky + lint-staged | `husky`, `lint-staged` (dev) |
+| Category                 | Technology                    | Package(s)                                                                                   |
+| ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------- |
+| **Framework**            | Next.js 16 (App Router)       | `next@16.1.6`                                                                                |
+| **UI Library**           | React 19 + Compiler           | `react@19.2.3`, `react-dom@19.2.3`                                                           |
+| **Styling**              | Tailwind CSS v4, Mobile-First | `tailwindcss@^4`, `@tailwindcss/postcss@^4`                                                  |
+| **Component Library**    | Shadcn/UI + Radix UI          | `shadcn`, `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` |
+| **Icons**                | Lucide React                  | `lucide-react`                                                                               |
+| **Database**             | PostgreSQL via NeonDB         | `@neondatabase/serverless`                                                                   |
+| **ORM**                  | Drizzle ORM                   | `drizzle-orm`, `drizzle-kit` (dev)                                                           |
+| **Auth**                 | Clerk                         | `@clerk/nextjs`                                                                              |
+| **Client State**         | Zustand                       | `zustand`                                                                                    |
+| **Server State**         | SWR                           | `swr`                                                                                        |
+| **Forms**                | React Hook Form + Zod         | `react-hook-form`, `@hookform/resolvers`, `zod`                                              |
+| **Payments**             | Stripe                        | `stripe`, `@stripe/stripe-js`                                                                |
+| **Email**                | Resend                        | `resend`                                                                                     |
+| **Storage**              | Cloudflare R2 (S3-compatible) | `@aws-sdk/client-s3`                                                                         |
+| **Image upload (R2)**    | FilePond (default)            | `react-filepond`, `filepond` — see Section 13 (Image upload pattern)                         |
+| **i18n**                 | next-intl (Spanish default)   | `next-intl`                                                                                  |
+| **Theming**              | next-themes                   | `next-themes`                                                                                |
+| **Toasts**               | Sonner                        | `sonner`                                                                                     |
+| **Webhook Verification** | Svix                          | `svix`                                                                                       |
+| **Error Monitoring**     | Sentry                        | `@sentry/nextjs`                                                                             |
+| **Server Guards**        | server-only                   | `server-only`                                                                                |
+| **Formatting**           | Prettier + Tailwind plugin    | `prettier`, `prettier-plugin-tailwindcss` (dev)                                              |
+| **Linting**              | ESLint + Prettier compat      | `eslint`, `eslint-config-next`, `eslint-config-prettier` (dev)                               |
+| **Code Quality**         | Husky + lint-staged           | `husky`, `lint-staged` (dev)                                                                 |
 
 ### Coding Guidelines
 
@@ -243,31 +243,31 @@ docs/
 
 **Public Routes:**
 
-| Route | Description |
-|-------|-------------|
-| `/:locale` | Homepage — translated card with CTA |
-| `/:locale/login` | Auth screen (Clerk-managed) |
-| `/:locale/sign-up` | Sign-up screen (Clerk-managed) |
+| Route              | Description                         |
+| ------------------ | ----------------------------------- |
+| `/:locale`         | Homepage — translated card with CTA |
+| `/:locale/login`   | Auth screen (Clerk-managed)         |
+| `/:locale/sign-up` | Sign-up screen (Clerk-managed)      |
 
 **Protected Routes (requires auth):**
 
-| Route | Description |
-|-------|-------------|
+| Route                | Description                           |
+| -------------------- | ------------------------------------- |
 | `/:locale/dashboard` | User dashboard (scaffold when needed) |
-| `/:locale/settings` | User settings (scaffold when needed) |
+| `/:locale/settings`  | User settings (scaffold when needed)  |
 
 **Admin Routes (requires auth + admin role):**
 
-| Route | Description |
-|-------|-------------|
+| Route            | Description                        |
+| ---------------- | ---------------------------------- |
 | `/:locale/admin` | Admin panel (scaffold when needed) |
 
 **API Routes:**
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/api/webhooks/clerk` | POST | Clerk user events (user.created, user.updated, user.deleted) |
-| `/api/webhooks/stripe` | POST | Stripe payment events (checkout.session.completed, invoice.payment_succeeded, customer.subscription.deleted) |
+| Route                  | Method | Description                                                                                                  |
+| ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------ |
+| `/api/webhooks/clerk`  | POST   | Clerk user events (user.created, user.updated, user.deleted)                                                 |
+| `/api/webhooks/stripe` | POST   | Stripe payment events (checkout.session.completed, invoice.payment_succeeded, customer.subscription.deleted) |
 
 ---
 
@@ -420,44 +420,45 @@ _List of required environment variables. AI: NEVER hardcode secrets. NEVER commi
 
 ### Server-Side Variables (validated in `src/lib/env.ts`)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | NeonDB PostgreSQL connection string | `postgresql://user:pass@host/db?sslmode=require` |
-| `CLERK_SECRET_KEY` | Clerk private API key | `sk_test_...` |
-| `R2_ACCOUNT_ID` | Cloudflare account ID | `xxxxxxxxxxxxxxxx` |
-| `R2_ACCESS_KEY_ID` | R2 access key | `xxxxxxxxxxxxxxxx` |
-| `R2_SECRET_ACCESS_KEY` | R2 secret key | `xxxxxxxxxxxxxxxxxxxx` |
-| `R2_BUCKET_NAME` | R2 bucket name | `your-bucket-name` |
-| `STRIPE_SECRET_KEY` | Stripe private API key | `sk_test_...` |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | `whsec_...` |
-| `RESEND_API_KEY` | Resend API key | `re_...` |
-| `RESEND_FROM_EMAIL` | Default sender email | `onboarding@resend.dev` |
+| Variable                | Description                         | Example                                          |
+| ----------------------- | ----------------------------------- | ------------------------------------------------ |
+| `DATABASE_URL`          | NeonDB PostgreSQL connection string | `postgresql://user:pass@host/db?sslmode=require` |
+| `CLERK_SECRET_KEY`      | Clerk private API key               | `sk_test_...`                                    |
+| `R2_ACCOUNT_ID`         | Cloudflare account ID               | `xxxxxxxxxxxxxxxx`                               |
+| `R2_ACCESS_KEY_ID`      | R2 access key                       | `xxxxxxxxxxxxxxxx`                               |
+| `R2_SECRET_ACCESS_KEY`  | R2 secret key                       | `xxxxxxxxxxxxxxxxxxxx`                           |
+| `R2_BUCKET_NAME`        | R2 bucket name                      | `your-bucket-name`                               |
+| `STRIPE_SECRET_KEY`     | Stripe private API key              | `sk_test_...`                                    |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret       | `whsec_...`                                      |
+| `RESEND_API_KEY`        | Resend API key                      | `re_...`                                         |
+| `RESEND_FROM_EMAIL`     | Default sender email                | `onboarding@resend.dev`                          |
 
 ### Client-Side Variables (validated in `src/lib/env.ts`)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk public key | `pk_test_...` |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Sign-in route | `/login` |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Sign-up route | `/sign-up` |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL` | Post sign-in redirect | `/` |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL` | Post sign-up redirect | `/` |
-| `NEXT_PUBLIC_R2_PUBLIC_URL` | R2 public bucket URL | `https://pub-xxx.r2.dev` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe public key | `pk_test_...` |
+| Variable                                       | Description           | Example                  |
+| ---------------------------------------------- | --------------------- | ------------------------ |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`            | Clerk public key      | `pk_test_...`            |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`                | Sign-in route         | `/login`                 |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`                | Sign-up route         | `/sign-up`               |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL` | Post sign-in redirect | `/`                      |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL` | Post sign-up redirect | `/`                      |
+| `NEXT_PUBLIC_R2_PUBLIC_URL`                    | R2 public bucket URL  | `https://pub-xxx.r2.dev` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`           | Stripe public key     | `pk_test_...`            |
 
 ### Not Yet Validated (used via `process.env` directly)
 
-| Variable | Description | Used In |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (safe to expose publicly) | `instrumentation-client.ts`, `src/instrumentation.ts`, `src/lib/logger.ts` |
-| `SENTRY_ORG` | Sentry organization slug | `next.config.ts` (source map upload) |
-| `SENTRY_PROJECT` | Sentry project slug | `next.config.ts` (source map upload) |
-| `SENTRY_AUTH_TOKEN` | Sentry auth token for source map uploads | `next.config.ts` (CI/CD only) |
-| `CLERK_WEBHOOK_SECRET` | Clerk webhook signing secret | `src/app/api/webhooks/clerk/route.ts` |
-| `NEXT_PUBLIC_APP_URL` | App base URL (fallback: `http://localhost:3000`) | `src/lib/constants.ts`, email templates |
-| `SKIP_ENV_VALIDATION` | Skip env validation during build | `src/lib/env.ts` |
+| Variable                 | Description                                      | Used In                                                                    |
+| ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (safe to expose publicly)             | `instrumentation-client.ts`, `src/instrumentation.ts`, `src/lib/logger.ts` |
+| `SENTRY_ORG`             | Sentry organization slug                         | `next.config.ts` (source map upload)                                       |
+| `SENTRY_PROJECT`         | Sentry project slug                              | `next.config.ts` (source map upload)                                       |
+| `SENTRY_AUTH_TOKEN`      | Sentry auth token for source map uploads         | `next.config.ts` (CI/CD only)                                              |
+| `CLERK_WEBHOOK_SECRET`   | Clerk webhook signing secret                     | `src/app/api/webhooks/clerk/route.ts`                                      |
+| `NEXT_PUBLIC_APP_URL`    | App base URL (fallback: `http://localhost:3000`) | `src/lib/constants.ts`, email templates                                    |
+| `SKIP_ENV_VALIDATION`    | Skip env validation during build                 | `src/lib/env.ts`                                                           |
 
 **Notes:**
+
 - File: `.env.local` (local dev), `.env.production` (production — managed in hosting provider).
 - Template: `.env.example` is committed to the repo with placeholder values.
 - Validation: `src/lib/env.ts` validates at import-time and fails fast with clear error messages.
@@ -468,24 +469,24 @@ _List of required environment variables. AI: NEVER hardcode secrets. NEVER commi
 
 _Common commands for development. AI: Use these instead of guessing._
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server (Next.js) |
-| `npm run build` | Production build (for validation) |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Run ESLint with auto-fix |
-| `npm run format` | Format all files with Prettier |
-| `npm run format:check` | Check formatting without writing |
-| `npm run typecheck` | TypeScript strict check (`tsc --noEmit`) |
-| `npm run validate` | Full CI check (typecheck + lint + format + build) |
-| `npm run clean` | Delete `.next` cache (fixes stale type errors) |
-| `npm run db:push` | Push Drizzle schema changes to NeonDB |
-| `npm run db:generate` | Generate Drizzle migrations |
-| `npm run db:migrate` | Run Drizzle migrations |
-| `npm run db:studio` | Open Drizzle Studio (visual DB browser) |
-| `npm run db:seed` | Seed database (`npx tsx src/lib/db/seed.ts`) |
-| `npx shadcn@latest add [component]` | Add a Shadcn/UI component |
+| Command                             | Description                                       |
+| ----------------------------------- | ------------------------------------------------- |
+| `npm run dev`                       | Start dev server (Next.js)                        |
+| `npm run build`                     | Production build (for validation)                 |
+| `npm run start`                     | Start production server                           |
+| `npm run lint`                      | Run ESLint                                        |
+| `npm run lint:fix`                  | Run ESLint with auto-fix                          |
+| `npm run format`                    | Format all files with Prettier                    |
+| `npm run format:check`              | Check formatting without writing                  |
+| `npm run typecheck`                 | TypeScript strict check (`tsc --noEmit`)          |
+| `npm run validate`                  | Full CI check (typecheck + lint + format + build) |
+| `npm run clean`                     | Delete `.next` cache (fixes stale type errors)    |
+| `npm run db:push`                   | Push Drizzle schema changes to NeonDB             |
+| `npm run db:generate`               | Generate Drizzle migrations                       |
+| `npm run db:migrate`                | Run Drizzle migrations                            |
+| `npm run db:studio`                 | Open Drizzle Studio (visual DB browser)           |
+| `npm run db:seed`                   | Seed database (`npx tsx src/lib/db/seed.ts`)      |
+| `npx shadcn@latest add [component]` | Add a Shadcn/UI component                         |
 
 ---
 
@@ -494,6 +495,7 @@ _Common commands for development. AI: Use these instead of guessing._
 _External services and their configuration. AI: Check this before integrating with any service._
 
 ### Clerk (Authentication)
+
 - **Purpose:** User authentication, session management, user metadata.
 - **SDK/Package:** `@clerk/nextjs`
 - **Dashboard:** [https://dashboard.clerk.com](https://dashboard.clerk.com)
@@ -506,6 +508,7 @@ _External services and their configuration. AI: Check this before integrating wi
 - **Key env vars:** `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`
 
 ### Stripe (Payments)
+
 - **Purpose:** Payment processing, subscriptions, checkout.
 - **SDK/Package:** `stripe` (server), `@stripe/stripe-js` (client)
 - **Dashboard:** [https://dashboard.stripe.com](https://dashboard.stripe.com)
@@ -517,6 +520,7 @@ _External services and their configuration. AI: Check this before integrating wi
 - **Key env vars:** `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 
 ### Resend (Email)
+
 - **Purpose:** Transactional email delivery.
 - **SDK/Package:** `resend`
 - **Dashboard:** [https://resend.com/overview](https://resend.com/overview)
@@ -527,6 +531,7 @@ _External services and their configuration. AI: Check this before integrating wi
 - **Key env vars:** `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
 
 ### Cloudflare R2 (Object Storage)
+
 - **Purpose:** File/image storage (S3-compatible).
 - **SDK/Package:** `@aws-sdk/client-s3`
 - **Dashboard:** [https://dash.cloudflare.com](https://dash.cloudflare.com) → R2
@@ -536,6 +541,7 @@ _External services and their configuration. AI: Check this before integrating wi
 - **Image upload UI:** Use **FilePond** (`react-filepond` + `filepond`) as the default library for image uploads to R2. Alternative: **Uppy** (`@uppy/react`) if you need multi-source pickers (e.g. Google Drive, URL) or a dashboard-style UI. Do not build custom upload UX from scratch; use one of these and wire it to a Server Action or API route that calls the R2 client. Upload limits and allowed types are in `src/lib/constants.ts` (`UPLOAD`).
 
 ### NeonDB (Database)
+
 - **Purpose:** Serverless PostgreSQL database.
 - **SDK/Package:** `@neondatabase/serverless`, `drizzle-orm`
 - **Dashboard:** [https://console.neon.tech](https://console.neon.tech)
@@ -547,6 +553,7 @@ _External services and their configuration. AI: Check this before integrating wi
 - **Key env vars:** `DATABASE_URL`
 
 ### Sentry (Error Monitoring)
+
 - **Purpose:** Error tracking, performance monitoring, and session replay in production.
 - **SDK/Package:** `@sentry/nextjs`
 - **Dashboard:** [https://sentry.io](https://sentry.io)
@@ -587,19 +594,19 @@ _Document recurring issues, non-obvious patterns, and solutions that the AI shou
 
 ### Gotchas
 
-| Issue | Solution |
-|-------|----------|
-| Hydration mismatch with dates | Use `suppressHydrationWarning` on elements with dates, or format only on the client. |
-| Next.js Image requires explicit domains | Add domains to `next.config.ts` → `images.remotePatterns`. Currently configured: `img.clerk.com`. |
-| Env vars not available during `npm run build` | Set `SKIP_ENV_VALIDATION=true` in your build environment. |
-| Stripe webhook needs raw body | The Stripe webhook route uses `req.text()` (not `req.json()`) to get the raw body for signature verification. |
-| Clerk webhook needs svix headers | The Clerk webhook route verifies `svix-id`, `svix-timestamp`, `svix-signature` headers. |
-| next-intl requires `params` to be awaited | In Next.js 16, `params` is a `Promise`. Always `await params` in layouts/pages. |
-| Drizzle env vars at config level | `drizzle.config.ts` uses `process.env.DATABASE_URL!` directly (not `serverEnv`) because it runs outside Next.js. |
-| Neon HTTP no transactions | The `@neondatabase/serverless` HTTP driver does NOT support `db.transaction()`. Execute multi-table writes sequentially. |
-| Typecheck fails for deleted routes | If `.next/types/validator.ts` references deleted files, run `npm run clean` then `npm run typecheck`. |
-| Zod date coercion for DB | When accepting dates from forms, use `z.coerce.date()` in Zod schemas. Raw strings sent to Drizzle timestamp fields fail with `value.toISOString is not a function`. |
-| Sentry optional | If `NEXT_PUBLIC_SENTRY_DSN` is not set, the logger and instrumentation gracefully degrade to console-only — no errors. |
+| Issue                                         | Solution                                                                                                                                                             |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hydration mismatch with dates                 | Use `suppressHydrationWarning` on elements with dates, or format only on the client.                                                                                 |
+| Next.js Image requires explicit domains       | Add domains to `next.config.ts` → `images.remotePatterns`. Currently configured: `img.clerk.com`.                                                                    |
+| Env vars not available during `npm run build` | Set `SKIP_ENV_VALIDATION=true` in your build environment.                                                                                                            |
+| Stripe webhook needs raw body                 | The Stripe webhook route uses `req.text()` (not `req.json()`) to get the raw body for signature verification.                                                        |
+| Clerk webhook needs svix headers              | The Clerk webhook route verifies `svix-id`, `svix-timestamp`, `svix-signature` headers.                                                                              |
+| next-intl requires `params` to be awaited     | In Next.js 16, `params` is a `Promise`. Always `await params` in layouts/pages.                                                                                      |
+| Drizzle env vars at config level              | `drizzle.config.ts` uses `process.env.DATABASE_URL!` directly (not `serverEnv`) because it runs outside Next.js.                                                     |
+| Neon HTTP no transactions                     | The `@neondatabase/serverless` HTTP driver does NOT support `db.transaction()`. Execute multi-table writes sequentially.                                             |
+| Typecheck fails for deleted routes            | If `.next/types/validator.ts` references deleted files, run `npm run clean` then `npm run typecheck`.                                                                |
+| Zod date coercion for DB                      | When accepting dates from forms, use `z.coerce.date()` in Zod schemas. Raw strings sent to Drizzle timestamp fields fail with `value.toISOString is not a function`. |
+| Sentry optional                               | If `NEXT_PUBLIC_SENTRY_DSN` is not set, the logger and instrumentation gracefully degrade to console-only — no errors.                                               |
 
 ### Patterns & Conventions
 

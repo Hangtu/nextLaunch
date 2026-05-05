@@ -5,14 +5,14 @@ import { create } from "zustand";
 // =============================================================================
 
 interface AppState {
-    /** Whether the sidebar/navigation is open (mobile) */
-    sidebarOpen: boolean;
-    setSidebarOpen: (open: boolean) => void;
-    toggleSidebar: () => void;
+  /** Whether the sidebar/navigation is open (mobile) */
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  toggleSidebar: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-    sidebarOpen: false,
-    setSidebarOpen: (open) => set({ sidebarOpen: open }),
-    toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  sidebarOpen: false,
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
 }));

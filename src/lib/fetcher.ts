@@ -6,15 +6,15 @@
  * Custom error for fetch failures with status code access.
  */
 export class FetchError extends Error {
-    readonly status: number;
-    readonly info: unknown;
+  readonly status: number;
+  readonly info: unknown;
 
-    constructor(status: number, message: string, info?: unknown) {
-        super(message);
-        this.name = "FetchError";
-        this.status = status;
-        this.info = info;
-    }
+  constructor(status: number, message: string, info?: unknown) {
+    super(message);
+    this.name = "FetchError";
+    this.status = status;
+    this.info = info;
+  }
 }
 
 /**
@@ -26,22 +26,22 @@ export class FetchError extends Error {
  * ```
  */
 export async function fetcher<T = unknown>(url: string): Promise<T> {
-    const res = await fetch(url);
+  const res = await fetch(url);
 
-    if (!res.ok) {
-        let info: unknown;
-        try {
-            info = await res.json();
-        } catch {
-            info = await res.text();
-        }
-
-        throw new FetchError(
-            res.status,
-            `Fetch failed: ${res.status} ${res.statusText}`,
-            info
-        );
+  if (!res.ok) {
+    let info: unknown;
+    try {
+      info = await res.json();
+    } catch {
+      info = await res.text();
     }
 
-    return res.json() as Promise<T>;
+    throw new FetchError(
+      res.status,
+      `Fetch failed: ${res.status} ${res.statusText}`,
+      info
+    );
+  }
+
+  return res.json() as Promise<T>;
 }
