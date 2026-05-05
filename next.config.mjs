@@ -8,6 +8,8 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig = {
   // React Compiler — eliminates need for manual useMemo/useCallback
   reactCompiler: true,
+  // Required for Docker multi-stage build optimization
+  output: "standalone",
   experimental: {
     // Required for root-level not-found.tsx in Next.js 16
     globalNotFound: true,

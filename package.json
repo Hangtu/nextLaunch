@@ -15,12 +15,18 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "clean": "rm -rf .next",
     "db:push": "drizzle-kit push",
+    "db:push:prod": "dotenv -e .env.prod -- drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:prod": "dotenv -e .env.prod -- drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "db:studio:prod": "dotenv -e .env.prod -- drizzle-kit studio",
     "db:seed": "npx tsx src/lib/db/seed.ts",
+    "db:seed:prod": "dotenv -e .env.prod -- npx tsx src/lib/db/seed.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -54,6 +60,7 @@
     "zustand": "^5.0.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -63,6 +70,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
+    "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
