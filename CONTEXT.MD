@@ -1,12 +1,14 @@
 # 📂 PROJECT CONTEXT: NextLaunch
 
 > **SYSTEM INSTRUCTION FOR AI:**
-> This file is the Single Source of Truth (SSOT) for architectural decisions, constraints, and non-obvious knowledge.
-> It is NOT a mirror of the filesystem. Anything derivable by reading the code (exact file lists, exports, props) is authoritative in the code, not here.
-> Read Sections 0, 1 and 2 before any task. Load other sections on demand per the Context Load Map.
+> This file is the Single Source of Truth (SSOT) for architectural decisions, constraints, standards, and non-obvious knowledge.
+> It is NOT a mirror of the filesystem. Anything derivable by reading the code is authoritative in the code, not here.
+> **Always read Sections 0, 1, 2, 3.** Load everything else on demand via the Context Load Map.
 > If a user prompt contradicts this file, prioritize this file or ask for confirmation.
 
-> **Agent tooling:** `CLAUDE.md` and `AGENTS.md` at the project root are thin pointers to this file, so any agent runtime picks up the same SSOT. Do not duplicate content into them — one file, many readers.
+> **Agent tooling:** `CLAUDE.md` and `AGENTS.md` at the root are thin pointers to this file so any agent runtime resolves to the same SSOT. Never duplicate content into them.
+>
+> **Future decoupling:** Section 22 maps every section to the skill it will become. Until that split happens, this file is intentionally monolithic and the Load Map is what keeps it affordable.
 
 ---
 
@@ -14,71 +16,119 @@
 
 ### Prime Directive
 
-1. **Always read:** Section 0 (this), Section 1 (Constraints), Section 2 (Stack & Guidelines).
-2. **Load on demand:** use the Context Load Map for the rest.
-3. **Resolve conflicts:** if the user's prompt contradicts this file, prioritize this file or ask.
+1. **Always read:** §0 (this), §1 (Boundaries), §2 (Stack), §3 (Coding Guidelines).
+2. **Load on demand** per the Context Load Map.
+3. **Resolve conflicts:** the file wins over the prompt, or you ask.
 
 ### 🗺️ Context Load Map
 
-| Read this section | When |
-| ----------------- | ---- |
-| 0, 1, 2 | Always |
-| 12 (Testing) | Writing or modifying any Server Action, DAL function, or auth logic |
-| 13 (Security) | Touching auth, API routes, webhooks, uploads, or any user input |
-| 15 (Gotchas) | Before debugging anything that "should work" |
-| 11 (Integrations) | Touching Better Auth, Stripe, Resend, R2, Neon, Upstash, or Sentry |
-| 9 (Env) | Adding or reading an environment variable |
-| 10 (Commands) | Running anything in the terminal |
-| 3, 4 (Architecture, Domain) | Adding routes or entities, restructuring |
-| 5, 6, 7 (Status, Roadmap, Icebox) | Planning, or asked "what's next" |
-| 8 (Flow), 14 (Deploy), 16 (Refs) | Rarely — deploy questions or navigation redesign |
+| Load | When |
+| ---- | ---- |
+| **0, 1, 2, 3** | Always |
+| 4 Architecture · 5 Domain | Adding routes or entities, restructuring |
+| 6 Design System | Any visual or component work |
+| 7 Accessibility | Any UI work — no exceptions |
+| 8 i18n | Any user-facing string, date, number, or currency |
+| 9 SEO | Public pages, metadata, sitemap, structured data |
+| 10 Performance | Adding a dependency, an image, a list, or a client component |
+| 11 Marketing & Analytics | Tracking, conversion, landing pages, email campaigns |
+| 12 Privacy & Legal | Storing user data, cookies, third parties, account deletion |
+| 13 Security | Auth, API routes, webhooks, uploads, any user input |
+| 14 Testing | Writing or changing an action, DAL fn, guard, schema, or interactive component |
+| 15 Agent Toolchain | Verifying work — read before reporting anything as done |
+| 16 Env · 17 Commands | Env vars, terminal work |
+| 18 Integrations | Better Auth, Stripe, Resend, R2, Neon, Upstash, Sentry, PostHog |
+| 19 Deployment & Ops | Migrations, releases, incidents, flags |
+| 20 Gotchas | Before debugging anything that "should work" |
+| 21 Status & Roadmap | Planning, or asked "what's next" |
+| 22 Skills Map · 23 References | Restructuring this document |
 
-### Vibe & Behavior
+### Behavior
 
-- **Concise:** do not explain basic concepts. Give the solution.
-- **Strict compliance:** adhere to Section 2 guidelines and Section 1 constraints.
-- **Language:** **English** for all code (variables, functions, types, comments, JSDoc). All user-facing strings go through `next-intl` — see Rule 15.
-- **Scope (YAGNI):** implement only what is requested. Propose improvements; do not implement them unsolicited.
-- **Clarification:** if the request is ambiguous, ask. Do not assume.
-- **Dependencies:** do NOT introduce libraries without explicit permission. Propose with justification first.
-- **Refactoring:** do not refactor code unrelated to the active task.
-- **File awareness:** before creating a file, verify it doesn't exist. Before modifying, read its current content.
-- **Documentation:** when architecture, constraints, or non-obvious behavior changes, update this file. When you burn time on a non-obvious bug, add it to Section 15.
-- **Security-first:** see Section 13. Auth and validation are structural, not retrofitted.
+- **Concise.** No explanations of basic concepts. Give the solution.
+- **Language.** **English** in all code (identifiers, comments, JSDoc, commit messages). All user-facing copy goes through `next-intl` — §8.
+- **Scope (YAGNI).** Implement what was asked. Propose improvements; don't ship them unsolicited.
+- **Clarify, don't assume.** Ambiguity is a question, not a guess.
+- **Dependencies.** Never add a library without explicit permission. Propose with justification, bundle cost, and maintenance status.
+- **No drive-by refactors.** Touch only what the task requires.
+- **File awareness.** Verify a file doesn't exist before creating it. Read it before modifying it.
+- **Documentation duty.** Architecture, constraint, or non-obvious behavior changes → update this file in the same change. Time lost to a surprising bug → add it to §20.
+- **Security- and accessibility-first.** Both are structural in this codebase, never retrofitted.
 
-### 🚫 Anti-Patterns (things AI assistants get wrong here — do not do these)
+### 🛑 Escalate instead of proceeding when
 
-1. **Do not silence the type system.** `any`, `as unknown as`, `@ts-ignore`, `@ts-expect-error`, and non-null `!` are forbidden as a way to make `tsc` pass. If types don't line up, the model or the logic is wrong.
-2. **Do not define a raw Server Action.** Every action is built from a `next-safe-action` client (`actionClient`, `authActionClient`, `adminActionClient`). A bare `"use server"` async export is an unauthenticated public RPC endpoint — see §13.
-3. **Do not create a utility that already exists.** Search `src/lib/utils.ts`, `src/lib/`, and `src/hooks/` first.
-4. **`"use client"` is a permission you request, not a default.** Every occurrence needs a reason (hook, event handler, browser API). Push it to the smallest leaf — a client leaf inside a server page, never a client page.
-5. **Do not swallow errors.** No `catch {}`, no `catch (e) { return null }`. Every catch logs via `logger` or throws a typed error from `@/lib/errors`.
-6. **Do not import `db` outside `src/data/`.** No exceptions.
-7. **Do not hand-write Zod schemas that mirror a DB table.** Derive them with `drizzle-zod`, then `.refine()` for business rules.
-8. **Do not put client state in Zustand if it belongs in the URL.** Filters, pagination, tabs, sort order and open-modal state go through `nuqs`.
-9. **Do not route file bytes through a Server Action.** Uploads use presigned URLs — see §11 R2.
-10. **Do not touch files outside the active task's scope.** No opportunistic cleanup.
-11. **Do not invent env vars.** Adding one means updating `src/lib/env.ts`, `.env.example`, and Section 9 in the same change.
-12. **Do not hardcode user-facing text.** Add the key to `messages/es.json` and `messages/en.json`.
-13. **Do not rebuild what Shadcn/Radix provides.** Check `src/components/ui/` and the Shadcn registry first.
-14. **Do not mark a task complete without running the DoD below.**
+- The task requires a schema change that drops or renames a column holding production data
+- The task requires a new third-party service (privacy, cost, and DPA implications — §12)
+- The change touches authorization logic and you cannot write a test that proves the negative case
+- The requirement conflicts with §7 Accessibility or §13 Security
+- Two attempts at the same approach have failed — state the root cause and propose a different track
 
-### ✅ Definition of Done (per task)
+### 🚫 Anti-Patterns
 
-Not complete until all pass. Run them; do not assume.
+**Type safety**
+
+1. No `any`. No `as unknown as`, `@ts-ignore`, `@ts-expect-error`, or non-null `!` used to make `tsc` pass. If types don't line up, the model is wrong.
+
+**Server boundary**
+
+2. No bare `"use server"` exports. Every action is built from a `next-safe-action` client. A raw action is an unauthenticated public RPC endpoint — §13.
+3. Never import `db` outside `src/data/`.
+4. Never trust a client-supplied identifier. Derive `userId` from the session; generate storage keys server-side.
+5. Never route file bytes through a Server Action. Presigned URLs only — §18 R2.
+
+**Client boundary**
+
+6. `"use client"` is a permission you request with a reason, pushed to the smallest leaf. Never a client page wrapping server-capable children.
+7. URL-worthy state (filters, pagination, sort, tabs, open panels) goes in `nuqs`, never Zustand.
+
+**Data shape**
+
+8. Never hand-write a Zod schema that mirrors a table. Derive with `drizzle-zod`, then `.refine()`.
+
+**Copy & formatting**
+
+9. Zero string literals in JSX. Zero manual date/number/currency formatting.
+
+**Errors**
+
+10. No `catch {}`, no `catch (e) { return null }`. Log via `logger` or throw a typed error from `@/lib/errors`.
+11. Never surface a raw error message, stack trace, or provider string to the UI.
+
+**UI**
+
+12. Don't rebuild what Shadcn/Radix provides. Don't build a custom control where a semantic element exists.
+13. Never remove focus outlines. Never use `ml-*`/`text-left` where a logical property exists.
+14. Never ship an async surface without all four states: empty, loading, error, success.
+
+**Process**
+
+15. Never invent an env var without updating `src/lib/env.ts`, `.env.example`, and §16 in the same change.
+16. Never mark a task complete without running the DoD below and reporting the results.
+
+### ✅ Definition of Done
+
+Not complete until these pass. Run them; do not assume.
 
 ```bash
 npm run typecheck   # zero errors
-npm run lint        # zero errors, zero warnings
-npm run test        # unit + component tests pass (see §12 for what requires a test)
+npm run lint        # zero errors, zero warnings (includes jsx-a11y, i18next)
+npm run test        # unit + component + a11y assertions
 ```
 
 When the change touches UI, additionally:
 
-- **Visual verification:** render the affected route via the browser MCP, screenshot at 375px and 1280px, confirm it matches intent. Never report UI work as done unsighted.
-- **Keyboard pass:** the new UI is reachable and operable with Tab / Enter / Escape alone, with visible focus.
+| Gate | How |
+| ---- | --- |
+| **Visual** | Render via Chrome DevTools MCP. Screenshot at 375, 768, 1280, 1920. Compare against intent. |
+| **Keyboard** | Tab / Shift+Tab / Enter / Space / Escape only. Focus visible and never obscured. |
+| **Zoom** | Readable and operable at 200% browser zoom and 320px width without horizontal scroll. |
+| **States** | Empty, loading, error and success all rendered and screenshotted. |
+| **Motion** | Verified with `prefers-reduced-motion: reduce` active. |
+| **Performance** | If the change adds a dependency, an image, or a client component: CWV trace via Chrome DevTools MCP against §10 budgets. |
 
-Then report what you ran and what the results were.
+When the change touches a public page, additionally: metadata, canonical, hreflang and structured data verified in the rendered HTML — §9.
+
+Then report exactly what you ran and what the results were. "Should work" is not a result.
 
 ---
 
@@ -86,699 +136,1097 @@ Then report what you ran and what the results were.
 
 ### Core Vision
 
-- **Elevator Pitch:** NextLaunch is a production-ready Next.js 16 **SaaS boilerplate** with self-hosted auth, payments, email, storage, i18n, testing and observability pre-wired behind a clean architecture — so developers skip setup and start on features.
-- **Target Audience:** solo developers, freelancers, and small teams shipping SaaS or web apps.
-- **KPIs:**
-  - Clone to first feature < 30 minutes.
-  - Zero configuration errors on fresh clone (env validation catches everything).
-  - `npm run validate` passes with zero warnings out of the box.
+- **Pitch:** NextLaunch is a production-ready Next.js 16 **SaaS boilerplate** with self-hosted auth, payments, email, storage, i18n, testing, observability and an agent-native verification toolchain — so developers skip setup and start on features.
+- **Audience:** solo developers, freelancers, and small teams shipping SaaS.
+- **KPIs:** clone → first feature < 30 min · zero config errors on fresh clone · `npm run validate` green out of the box · Lighthouse ≥ 95 on the marketing pages.
 
-> **Positioning:** this is an opinionated SaaS starter, not a neutral blank slate. Auth, payments, email and storage are pre-wired. If your project doesn't need one, **delete it** — an unused integration is a live liability, because an AI assistant reading this repo will assume the capability exists and wire features into it.
+> **Positioning.** Opinionated SaaS starter, not a blank slate. If your project doesn't need an integration, **delete it**. An unused integration is a live liability, because an agent reading this repo will assume the capability exists and wire features into it.
 
-> **Design bias — own your data:** where a self-hosted library and a SaaS vendor are comparable, this boilerplate picks the library. Auth is the clearest case: user identities are the hardest thing to migrate, so they live in your own Postgres. Vendor alternatives are documented in §11 for teams that prefer to trade lock-in for speed.
+### Design biases (the "why" behind the stack)
 
-### 🚧 Operational Constraints (Grounding)
+| Bias | Consequence |
+| ---- | ----------- |
+| **Own your data** | Where a self-hosted library and a SaaS vendor are comparable, pick the library. Auth is the clearest case — identities are the hardest migration in software. |
+| **Structural over conventional** | If a rule can be enforced by a type, a lint rule, or middleware, it must be. Documented conventions decay; enforced ones don't. This is the single most important principle for AI-generated code. |
+| **Server by default** | Every client component is a deliberate cost. |
+| **Verified, not assumed** | No UI ships unsighted, no action ships untested, no perf claim ships unmeasured. |
+| **One source of shape** | The Drizzle schema defines data shape. Everything else derives from it. |
+
+### 🚧 Operational Constraints
 
 _Non-negotiable._
 
-- **Server Components First:** default to RSC. `"use client"` only for hooks, event handlers, or browser APIs, at the smallest possible leaf.
-- **DAL Pattern:** all database queries go through `src/data/`. Never import `db` in UI components, pages, or actions.
-- **Safe Actions Only:** every Server Action is defined via a `next-safe-action` client. Input validation and the auth guard are enforced by middleware, not by convention. There is no valid reason to export a bare `"use server"` function.
-- **Env Safety:** all environment variables are validated in `src/lib/env.ts`. Direct `process.env` is allowed only in files that run outside the Next.js runtime (`drizzle.config.ts`, `next.config.ts`, Sentry init).
-- **Explicit Auth Declaration:** every route, API route and action declares its auth posture. **Intentionally public endpoints are listed in §13 with justification and abuse mitigation.** Nothing ships with an undeclared posture.
-- **Double-Layer Authorization:** the proxy handles navigation (optimistic, cookie-based). Real enforcement happens server-side in the action or route handler. Proxy-only protection is one middleware CVE away from public — and that CVE shipped in 2026, see §13.
-- **Roles:** `user` (default — `/dashboard`, `/settings`), `admin` (`/admin`). The `role` column lives on the `user` table in your database. Admin access requires `adminActionClient` or `requireRole("admin")` on the server, every time.
-- **Single Source of Shape:** the Drizzle schema is the source of truth for data shape. Zod validators for table-backed entities are derived with `drizzle-zod`, never hand-written twice.
-- **URL as State:** anything a user would reasonably bookmark, share, or reach with the back button lives in the URL via `nuqs`, not in a client store.
-- **Platform:** mobile-first responsive web app. Accessibility target **WCAG 2.1 AA**.
+- **Server Components First.** RSC by default; `"use client"` only for hooks, events, or browser APIs, at the smallest leaf.
+- **DAL Pattern.** All queries in `src/data/`. Never import `db` in UI, pages, or actions.
+- **Safe Actions Only.** Validation and auth are middleware, not convention.
+- **Env Safety.** All env vars validated in `src/lib/env.ts`. Direct `process.env` only outside the Next runtime (`drizzle.config.ts`, `next.config.ts`, Sentry init).
+- **Explicit Auth Declaration.** Every route, handler and action declares its posture. Public endpoints are enumerated in §13 with justification and abuse mitigation.
+- **Double-Layer Authorization.** Proxy gates navigation optimistically; the server enforces. Proxy-only protection is one middleware CVE away from public — and that CVE shipped in 2026 (§13).
+- **Roles.** `user` default; `admin` for `/admin`. The `role` column lives on `user` in your database.
+- **Accessibility target: WCAG 2.2 AA.** A change that introduces a violation is a bug, not a backlog item.
+- **URL as State.** Anything bookmarkable, shareable, or back-button-reachable lives in the URL.
+- **Localized by construction.** No English fallback shipped as product copy. That includes emails, validation errors, and metadata.
+- **Mobile-first.** 375px is the design baseline, not the afterthought.
 
 ### 🚫 Negative Scope
 
-- No specific business logic — bring your own domain.
-- No committed migrations — each project generates its own.
-- No CMS, no admin UI generator, no multi-tenancy.
-- No analytics vendor chosen (see Icebox).
-
-### 🏁 Boilerplate Readiness Criteria
-
-_The single canonical checklist. Do not duplicate it elsewhere in this file._
-
-**Foundation**
-
-- [x] Next.js 16 + React 19 + React Compiler
-- [x] Tailwind CSS v4 + Shadcn/UI + Radix + Lucide
-- [x] NeonDB + Drizzle ORM with example schema
-- [x] i18n via next-intl (`es` default, `en`)
-- [x] Structured logger with Sentry forwarding
-- [x] Error class hierarchy + friendly error mapping
-- [x] Env validation (Zod, fail-fast, actionable messages)
-- [x] SEO scaffold (robots.ts, sitemap.ts, OG metadata, metadataBase)
-- [x] PWA scaffold (manifest.ts)
-- [x] Husky + lint-staged + CI (typecheck, lint, format, test, build)
-- [x] Prettier + ESLint configured
-
-**Hardening — open items**
-
-- [ ] `next` at `16.2.11+` (security floor — §13)
-- [ ] Better Auth wired: schema generated, proxy session check, `requireAuth`/`requireRole`
-- [ ] `next-safe-action` clients: `actionClient`, `authActionClient`, `adminActionClient`
-- [ ] Presigned-URL upload flow to R2 (no bytes through Server Actions)
-- [ ] `drizzle-zod` deriving validators from schema
-- [ ] React Email templates replacing HTML strings
-- [ ] `nuqs` adapter mounted in root layout
-- [ ] Upstash Redis rate limiting (in-memory limiter deleted)
-- [ ] Vitest + RTL + MSW + `vitest-axe` configured with tests for actions, DAL, auth
-- [ ] Playwright configured with one smoke spec and one admin-denied spec
-- [ ] `eslint-plugin-jsx-a11y` at error level
-- [ ] Browser MCP in `.mcp.json` for visual verification
-- [ ] Security headers + CSP in `next.config.ts`
-- [ ] Sentry PII scrubbing (`beforeSend`) and replay input masking
+No domain logic · no committed migrations · no CMS · no admin UI generator · no multi-tenancy · no native apps.
 
 ---
 
-## 2. 🛠️ Tech Stack & Coding Guidelines
+## 2. 🛠️ Tech Stack
 
-_Use only the tools below. Do not introduce new libraries without permission._
+_Use only what's listed. Never add a library without permission._
 
-### Core Stack
+### Core
 
 | Category | Technology | Package(s) |
 | -------- | ---------- | ---------- |
 | **Framework** | Next.js 16 (App Router) | `next@16.2.11` ⚠️ security floor — §13 |
-| **UI Library** | React 19 + Compiler | `react@19.2.3`, `react-dom@19.2.3` |
-| **Language** | TypeScript (strict) | `typescript` |
-| **Styling** | Tailwind CSS v4, mobile-first | `tailwindcss@^4`, `@tailwindcss/postcss@^4` |
-| **Components** | Shadcn/UI + Radix UI | `shadcn`, `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` |
-| **Icons** | Lucide React | `lucide-react` |
-| **Database** | PostgreSQL via NeonDB | `@neondatabase/serverless` |
-| **ORM** | Drizzle ORM | `drizzle-orm`, `drizzle-kit` (dev) |
+| **UI** | React 19 + Compiler | `react@19.2.3`, `react-dom@19.2.3` |
+| **Language** | TypeScript strict | `typescript` |
+| **Styling** | Tailwind CSS v4 | `tailwindcss@^4`, `@tailwindcss/postcss@^4` |
+| **Components** | Shadcn/UI + Radix | `shadcn`, `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge` |
+| **Icons** | Lucide | `lucide-react` |
+| **Animation** | Motion | `motion` |
+| **Fonts** | next/font (self-hosted, subset) | built-in |
+| **Database** | PostgreSQL / NeonDB | `@neondatabase/serverless` |
+| **ORM** | Drizzle | `drizzle-orm`, `drizzle-kit` (dev) |
 | **Schema → Validation** | drizzle-zod | `drizzle-zod` |
-| **Auth** | **Better Auth** (self-hosted, users in your Postgres) | `better-auth` |
-| **Server Actions** | **next-safe-action** (validation + auth as middleware) | `next-safe-action` |
 | **Validation** | Zod 4 | `zod` |
-| **Forms** | React Hook Form + Zod | `react-hook-form`, `@hookform/resolvers` |
-| **URL State** | **nuqs** | `nuqs` |
+| **Auth** | Better Auth (self-hosted) | `better-auth` |
+| **Server Actions** | next-safe-action | `next-safe-action` |
+| **Forms** | React Hook Form | `react-hook-form`, `@hookform/resolvers` |
+| **URL State** | nuqs | `nuqs` |
 | **Client State** | Zustand (ephemeral UI only) | `zustand` |
-| **Client Fetching** | SWR (narrow cases only — see note) | `swr` |
+| **Client Fetching** | SWR (narrow cases only) | `swr` |
 | **Payments** | Stripe | `stripe`, `@stripe/stripe-js` |
-| **Email Delivery** | Resend | `resend` |
-| **Email Templates** | **React Email** | `@react-email/components`, `@react-email/render` |
-| **Storage** | Cloudflare R2 via presigned URLs | **`aws4fetch`** |
+| **Email delivery** | Resend | `resend` |
+| **Email templates** | React Email | `@react-email/components`, `@react-email/render` |
+| **Storage** | Cloudflare R2, presigned | `aws4fetch` |
 | **Upload UI** | FilePond | `react-filepond`, `filepond` |
-| **i18n** | next-intl (`es` default) | `next-intl` |
+| **i18n** | next-intl | `next-intl` |
 | **Theming** | next-themes | `next-themes` |
 | **Toasts** | Sonner | `sonner` |
-| **Rate Limiting** | Upstash Redis | `@upstash/ratelimit`, `@upstash/redis` |
-| **Error Monitoring** | Sentry | `@sentry/nextjs` |
-| **Server Guards** | server-only | `server-only` |
-| **Unit / Component Tests** | Vitest + RTL | `vitest`, `@vitejs/plugin-react`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event` (dev) |
-| **API Mocking** | MSW | `msw` (dev) |
-| **A11y Assertions** | vitest-axe | `vitest-axe` (dev) |
-| **E2E** | Playwright | `@playwright/test` (dev) |
-| **Formatting** | Prettier + Tailwind plugin | `prettier`, `prettier-plugin-tailwindcss` (dev) |
-| **Linting** | ESLint + a11y + Prettier compat | `eslint`, `eslint-config-next`, `eslint-plugin-jsx-a11y`, `eslint-config-prettier` (dev) |
-| **Code Quality** | Husky + lint-staged | `husky`, `lint-staged` (dev) |
+| **Rate limiting** | Upstash Redis | `@upstash/ratelimit`, `@upstash/redis` |
+| **Errors & tracing** | Sentry | `@sentry/nextjs` |
+| **Product analytics + flags** | PostHog | `posthog-js`, `posthog-node` |
+| **Server guards** | server-only | `server-only` |
 
-**Removed from earlier versions of this stack, deliberately:**
+### Quality toolchain
+
+| Purpose | Package(s) |
+| ------- | ---------- |
+| Unit / component | `vitest`, `@vitejs/plugin-react`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event` |
+| Network mocking | `msw` |
+| A11y — unit | `vitest-axe` |
+| A11y — E2E | `@axe-core/playwright` |
+| E2E | `@playwright/test` |
+| Performance CI | `@lhci/cli` (Lighthouse CI) |
+| Lint | `eslint`, `eslint-config-next`, `eslint-plugin-jsx-a11y`, `eslint-plugin-i18next`, `eslint-config-prettier` |
+| Format | `prettier`, `prettier-plugin-tailwindcss` |
+| Hooks | `husky`, `lint-staged` |
+
+### Deliberately removed
 
 | Removed | Reason |
 | ------- | ------ |
-| `@clerk/nextjs` | Replaced by Better Auth. Removes the `clerk_id` column, the user-sync webhook, and its entire class of eventual-consistency bugs. |
-| `svix` | Only existed to verify Clerk webhooks. Stripe verifies its own signatures. |
-| `@aws-sdk/client-s3` | Heavy SDK for what is now just URL signing. `aws4fetch` does it in a few KB. |
-| `ActionResponse<T>` (hand-rolled) | `next-safe-action` returns a typed result with validation errors already discriminated. Keeping both is duplicated machinery. |
-| `src/hooks/use-action.ts` (hand-rolled) | `next-safe-action` ships `useAction` and `useOptimisticAction`. |
-| In-memory rate limiter | Non-functional on serverless — see §15. |
+| `@clerk/nextjs` | Better Auth removes the foreign identity, the `clerk_id` column, the sync webhook, and its eventual-consistency bug class |
+| `svix` | Existed only for Clerk webhooks; Stripe verifies its own signatures |
+| `@aws-sdk/client-s3` | Heavy SDK for what is now URL signing; `aws4fetch` does it in a few KB |
+| `ActionResponse<T>` (hand-rolled) | `next-safe-action` returns a typed, discriminated result |
+| `src/hooks/use-action.ts` (hand-rolled) | `next-safe-action` ships `useAction` / `useOptimisticAction` |
+| In-memory rate limiter | Non-functional on serverless — §20 |
+| `framer-motion` | Renamed upstream; the package is `motion` |
 
-**Version policy:** pin exact versions for runtime dependencies (no `^`) so builds are reproducible and agent-generated code targets a known API. Dev tooling may use `^`. Dependabot proposes weekly; security advisories are triaged the same week.
+### Version & dependency policy
 
-**Note on SWR:** with RSC for reads and `next-safe-action` for mutations, most apps need zero client-side fetching. SWR stays for the narrow cases RSC can't serve — polling, infinite scroll, and data that must refresh without navigation. **If you reach for SWR, first confirm RSC or a server action can't do it.** Do not migrate to TanStack Query without a concrete need (dependent query graphs, complex optimistic cache surgery).
+- **Pin exact versions** for runtime deps. Reproducible builds, and agent-generated code targets a known API. Dev tooling may use `^`.
+- **Adding a dependency requires:** a named alternative you rejected, the gzipped bundle cost, last-release date, and whether it works in RSC.
+- **Dependabot** weekly. Security advisories triaged the same week.
+- **Never** add a package whose name is a near-miss of a popular one without verifying the publisher.
 
-### Coding Guidelines
+**On SWR:** with RSC for reads and safe actions for mutations, most apps need zero client fetching. SWR remains for polling, infinite scroll, and refresh-without-navigation. **Confirm RSC can't serve the case first.**
 
-1. **Strict Typing:** strict mode. No `any`, and no escape hatches to fake compliance (Anti-Pattern #1).
-2. **File Naming:** `kebab-case` for all files.
-3. **Component Strategy:** functional components only. RSC by default; `"use client"` at the smallest leaf.
-4. **Server Action Pattern:** build from a `next-safe-action` client. The client's middleware supplies the session and the role check; the schema supplies validation. Your action body assumes both already happened and calls the DAL.
-5. **Error Handling:** internal errors use the classes in `src/lib/errors.ts` — never bare `throw new Error()`. Route handlers wrap with `withErrorHandler()` from `src/lib/api.ts`. Action errors surface through `next-safe-action`'s typed result; never leak a raw message to the UI (Rule: use `getFriendlyErrorMessage`).
-6. **Database Abstraction (DAL):** all queries in `src/data/*.ts` as pure functions — no auth, no validation, no logging. Import the specific module (`@/data/users`), never a barrel.
-7. **Imports:** absolute with `@/`. No barrel files that re-export a directory — they break tree-shaking and hide where code lives.
-8. **Naming:** `PascalCase` export in a `kebab-case` file (`product-card.tsx` → `ProductCard`); `camelCase` for utils/hooks; `UPPER_SNAKE_CASE` for constants; `snake_case` for DB columns.
-9. **Logging:** `logger` from `@/lib/logger`, never `console.log`. `logger.error()` forwards to Sentry when a DSN is set. **Never log secrets, tokens, request bodies, or PII** — log identifiers.
-10. **Auth in Actions:** use `authActionClient` / `adminActionClient`, or `requireAuth()` / `requireRole()` in route handlers. Never read the session manually inside an action body.
-11. **No native browser UI:** no `window.alert` / `confirm` / `prompt`. Shadcn `AlertDialog` for confirmations, `Dialog` for modals, Sonner for ephemeral feedback.
-12. **Server-Only Guards:** `import "server-only"` in `src/lib/{api,auth,env,stripe,r2,resend}.ts`, `src/lib/db/*`, `src/lib/email/*`, and `src/data/*`.
-13. **React Compiler:** `reactCompiler: true` is on, so manual `useMemo` / `useCallback` / `React.memo` are unnecessary **for render optimization**. Three cases still need them explicitly:
-    - a value or callback passed to a **non-compiled third-party component** that relies on reference equality
-    - a value in a `useEffect` **dependency array** where an unstable reference re-fires the effect
-    - a genuinely expensive computation (parsing, large sort) where you want caching semantics, not just render skipping
-14. **Component Size:** files SHOULD stay under **300 lines**. At 200+, evaluate splitting.
-15. **i18n — no hardcoded strings:** every user-facing string goes through `t()`. `messages/es.json` is the source; `en.json` mirrors its key structure exactly. Adding a string means adding the key to **both** files in the same change. Zero string literals in JSX.
-16. **JSDoc `@fileoverview`:** required in `src/lib/`, `src/data/`, `src/actions/`, `src/hooks/` — the non-obvious modules. **Not** required in presentational components, where the code is self-describing and the comment rots on first refactor.
-
-### ♿ Accessibility Guidelines (WCAG 2.1 AA)
-
-`eslint-plugin-jsx-a11y` runs at **error** level. It catches the mechanical half. These are the rest:
-
-1. **Reach for the Radix primitive first.** Radix ships focus management, ARIA wiring and keyboard behavior. A `<div onClick>` reimplementation of a menu or dialog is a regression, not a shortcut.
-2. **Semantics:** `<button>` for actions, `<Link>` for navigation. Never swap for styling.
-3. **Visible focus:** never remove focus outlines. Use `focus-visible:ring-2`, not `outline-none` alone.
-4. **Touch targets:** minimum 44×44px. Achieve it with padding, not fixed height alone.
-5. **Contrast:** 4.5:1 body text, 3:1 large text and UI boundaries. Verify custom colors, not just Shadcn defaults.
-6. **Images:** meaningful `alt`, or `alt=""` when decorative. Always set `width`/`height` (or `fill` in a sized container) to avoid layout shift.
-7. **Forms:** every input has an associated `<Label htmlFor>`. Errors link via `aria-describedby` and are announced — a red border is not an error message.
-8. **Headings:** one `<h1>` per page, no skipped levels.
-9. **Async states:** use `aria-busy` or a live region. A spinner that exists only visually is invisible to assistive tech.
-10. **Motion:** respect `prefers-reduced-motion` for anything beyond a simple opacity fade.
+**On PostHog:** chosen because it collapses product analytics, feature flags, session replay and A/B assignment into one vendor instead of four. It's the one place this stack accepts a SaaS over self-hosting, because building flag infrastructure is not the product. Self-hosted PostHog is available if the data-residency argument outweighs the ops cost.
 
 ---
 
-## 3. 🗺️ App Architecture & Route Inventory
+## 3. 📐 Coding Guidelines
 
-> **Read this as intent, not inventory.** The filesystem is authoritative. Verify before relying on a path; if you find drift, fix this section.
+1. **Strict typing.** No `any`, no escape hatches (Anti-Pattern #1). Prefer inference; annotate boundaries.
+2. **File naming.** `kebab-case` everywhere.
+3. **Components.** Functional only. `PascalCase` export in a `kebab-case` file.
+4. **Server Action pattern.** Pick a `next-safe-action` client → attach schema → the handler receives validated input plus a guaranteed `ctx.user` where applicable → call the DAL → log → return data. Never read the session inside a handler body.
+5. **Error handling.** Typed errors from `src/lib/errors.ts`; never bare `throw new Error()`. Route handlers wrap in `withErrorHandler()`. Action errors surface through the typed result.
+6. **DAL.** Pure query functions in `src/data/*.ts`. No auth, no validation, no logging. Import the specific module (`@/data/users`), never a barrel.
+7. **Imports.** Absolute with `@/`. **No barrel files that re-export a directory** — they break tree-shaking and hide where code lives.
+8. **Naming.** `camelCase` utils/hooks · `UPPER_SNAKE_CASE` constants · `snake_case` DB columns · booleans read as assertions (`isLoading`, `hasAccess`, `canEdit`) · event handlers `handleX`, props `onX`.
+9. **Logging.** `logger` from `@/lib/logger`, never `console.log`. `logger.error()` forwards to Sentry. **Never log secrets, tokens, bodies, or PII** — log identifiers.
+10. **Auth.** `authActionClient` / `adminActionClient` in actions; `requireAuth()` / `requireRole()` in handlers.
+11. **No native browser UI.** No `alert` / `confirm` / `prompt`. Shadcn `AlertDialog`, `Dialog`, Sonner.
+12. **Server-only guards.** `import "server-only"` in `src/lib/{api,auth,env,stripe,r2,resend,rate-limit}.ts`, `src/lib/db/*`, `src/lib/email/*`, `src/data/*`.
+13. **React Compiler.** `reactCompiler: true`, so manual `useMemo` / `useCallback` / `React.memo` are unnecessary **for render optimization**. Still required for: a reference passed to a **non-compiled third-party component**; a value in a `useEffect` **dependency array**; a genuinely expensive computation where you want caching, not render skipping.
+14. **Component size.** Under **300 lines**. At 200+, evaluate splitting into sub-components or hooks.
+15. **Function signatures.** 2+ parameters use a destructured object with a named interface.
+16. **`@fileoverview` JSDoc** required in `src/lib/`, `src/data/`, `src/actions/`, `src/hooks/`. **Not** in presentational components, where it rots on the first refactor.
+17. **Comments explain why, never what.** A comment restating the code is deleted.
+18. **Dates.** Store UTC, render in the user's zone via the i18n formatter. Never construct a `Date` from a bare string without a zone.
+19. **Money.** Integer minor units (cents) in the database. Never floats. Format via the i18n currency formatter.
+20. **IDs.** UUID v7 for new tables — time-sortable, no sequential-ID enumeration leak.
 
-### Request Flow
+---
+
+## 4. 🗺️ Architecture & Route Inventory
+
+> Read as intent, not inventory. The filesystem is authoritative. Fix drift here when you find it.
+
+### Request flow
 
 ```
 Client Component
-  → Server Action (next-safe-action: schema → auth middleware → handler)
+  → Server Action (next-safe-action: schema → auth middleware → rate limit → handler)
     → DAL (src/data/) → Drizzle → Neon
 
 Server Component
   → DAL directly → Drizzle → Neon
 
-Route Handler (webhooks, presign)
-  → withErrorHandler → service logic → DAL
+Route Handler (webhooks, auth, presign)
+  → withErrorHandler → validate → service logic → DAL
 ```
 
-### 📂 Directory Structure
+### Directory structure
 
 ```
 src/
-├── actions/              # Server Actions, all built on next-safe-action clients
+├── actions/                    # all built on next-safe-action clients
 ├── app/
-│   ├── [locale]/         # i18n wrapper (layout: NuqsAdapter + NextIntl + Toaster + SEO)
+│   ├── [locale]/               # NuqsAdapter + NextIntl + Theme + Toaster + JSON-LD
+│   │   ├── (marketing)/        # public: home, pricing, legal — indexable
+│   │   ├── (auth)/             # login, sign-up, forgot-password — noindex
+│   │   └── (app)/              # dashboard, settings, admin — noindex
 │   ├── api/
-│   │   ├── auth/[...all]/route.ts    # Better Auth handler
-│   │   └── webhooks/stripe/route.ts  # signature-verified
+│   │   ├── auth/[...all]/      # Better Auth handler
+│   │   └── webhooks/stripe/    # signature-verified, idempotent
 │   ├── global-error.tsx, not-found.tsx
-│   ├── robots.ts, sitemap.ts, manifest.ts
+│   ├── robots.ts, sitemap.ts, manifest.ts, opengraph-image.tsx
 │   └── globals.css
-├── components/ui/        # Shadcn/UI primitives
-├── data/                 # DAL — pure queries, no auth/validation/logging
-├── hooks/                # Client hooks (action hooks come from next-safe-action)
-├── i18n/                 # config, navigation, request, routing
+├── components/
+│   ├── ui/                     # Shadcn primitives
+│   ├── layout/                 # shells, nav, footer
+│   └── features/               # domain composition
+├── data/                       # DAL
+├── hooks/
+├── i18n/                       # config, navigation, request, routing
 ├── lib/
-│   ├── api.ts            # successResponse, errorResponse, withErrorHandler (server-only)
-│   ├── auth.ts           # Better Auth instance + getSession/requireAuth/requireRole (server-only)
-│   ├── auth-client.ts    # createAuthClient for Client Components
-│   ├── safe-action.ts    # actionClient / authActionClient / adminActionClient
-│   ├── constants.ts      # APP_CONFIG, PAGINATION, UPLOAD, CACHE, ROLES
-│   ├── env.ts            # Zod-validated serverEnv + clientEnv (fail-fast)
-│   ├── errors.ts         # AppError hierarchy
-│   ├── error-messages.ts, fetcher.ts, logger.ts
-│   ├── r2.ts             # presignPutUrl / publicUrl via aws4fetch (server-only)
-│   ├── rate-limit.ts     # Upstash Ratelimit instances
-│   ├── resend.ts, stripe.ts, utils.ts
+│   ├── api.ts                  # withErrorHandler, successResponse, errorResponse
+│   ├── auth.ts                 # Better Auth instance + guards (server-only)
+│   ├── auth-client.ts          # createAuthClient
+│   ├── safe-action.ts          # actionClient / authActionClient / adminActionClient
+│   ├── analytics.ts            # typed event registry + consent gate
+│   ├── flags.ts                # PostHog feature flag reads (server + client)
+│   ├── consent.ts              # cookie consent state
+│   ├── seo.ts                  # buildMetadata(), hreflang, JSON-LD builders
+│   ├── constants.ts, env.ts, errors.ts, error-messages.ts
+│   ├── logger.ts, fetcher.ts, utils.ts
+│   ├── r2.ts                   # presignPutUrl / publicUrl (aws4fetch)
+│   ├── rate-limit.ts, resend.ts, stripe.ts
 │   ├── db/
-│   │   ├── index.ts      # Drizzle + Neon connection
+│   │   ├── index.ts
 │   │   ├── schema/
-│   │   │   ├── auth.ts   # Better Auth tables — GENERATED, do not hand-edit
-│   │   │   └── app.ts    # your domain tables
+│   │   │   ├── auth.ts         # GENERATED by Better Auth CLI — never hand-edit
+│   │   │   └── app.ts
 │   │   └── seed.ts
 │   └── email/
-│       ├── send.ts       # sendEmail() — renders React Email → Resend
-│       └── templates/    # .tsx React Email components
-├── messages/             # es.json (source), en.json (mirror)
-├── schemas/              # drizzle-zod derivations + non-table schemas
-├── store/                # Zustand — ephemeral UI state only
-├── types/                # PaginatedResponse<T>, ListParams
-├── instrumentation.ts, sentry.server.config.ts, sentry.edge.config.ts
-└── proxy.ts              # optimistic session cookie check + next-intl locale
+│       ├── send.ts             # locale-aware: renders React Email → Resend
+│       └── templates/*.tsx
+├── messages/                   # es.json (source), en.json (mirror)
+├── schemas/                    # drizzle-zod derivations + non-table schemas
+├── store/                      # Zustand — ephemeral UI only
+├── styles/tokens.css           # Tailwind @theme — the design token SSOT
+├── types/
+├── instrumentation.ts, sentry.{server,edge}.config.ts
+└── proxy.ts                    # optimistic session cookie + locale negotiation
 
 tests/
-├── setup.ts              # RTL + jest-dom + MSW lifecycle
-├── mocks/                # MSW handlers
-└── e2e/                  # Playwright specs
+├── setup.ts, factories/, mocks/     # MSW handlers
+├── e2e/                             # Playwright specs
+└── e2e/a11y/                        # axe scans per route
 
 Root:
-instrumentation-client.ts, vitest.config.ts, playwright.config.ts
-.mcp.json                 # browser MCP for visual verification
-CLAUDE.md, AGENTS.md      # pointers to this file
-.env.example, .env.ci
-.husky/{pre-commit,pre-push}
-.github/{workflows/ci.yml,dependabot.yml,PULL_REQUEST_TEMPLATE.md}
-CONTRIBUTING.md, CHANGELOG.md, docs/{DEPLOY.md,ROADMAP.md}
+instrumentation-client.ts · vitest.config.ts · playwright.config.ts · lighthouserc.js
+.mcp.json · CLAUDE.md · AGENTS.md · .env.example · .env.ci
+.husky/{pre-commit,pre-push} · .github/{workflows/,dependabot.yml,PULL_REQUEST_TEMPLATE.md}
+docs/{DEPLOY.md,ROADMAP.md,RUNBOOK.md,EVENTS.md}
 ```
 
-### 📍 Route Inventory
+### Route inventory
 
-**Public**
+**Marketing — indexable**
 
-| Route | Description | Auth posture |
-| ----- | ----------- | ------------ |
-| `/:locale` | Homepage | Public |
-| `/:locale/login` | Sign in (Better Auth) | Public — rate limited |
-| `/:locale/sign-up` | Sign up (Better Auth) | Public — rate limited |
-| `/:locale/forgot-password` | Password reset request | Public — rate limited |
+| Route | Purpose | Notes |
+| ----- | ------- | ----- |
+| `/:locale` | Homepage | LCP-critical, JSON-LD `WebSite` + `Organization` |
+| `/:locale/pricing` | Plans | JSON-LD `SoftwareApplication` + `Offer` |
+| `/:locale/privacy` · `/terms` · `/cookies` | Legal | Localized, required — §12 |
 
-**Protected (session required)**
+**Auth — `noindex`, rate limited**
 
-| Route | Description | Enforced by |
-| ----- | ----------- | ----------- |
-| `/:locale/dashboard` | User dashboard | proxy (optimistic) + server check in page/actions |
-| `/:locale/settings` | User settings | proxy (optimistic) + server check in page/actions |
+`/:locale/login` · `/sign-up` · `/forgot-password` · `/reset-password`
 
-**Admin (session + `role === "admin"`)**
+**App — `noindex`, session required**
 
-| Route | Description | Enforced by |
-| ----- | ----------- | ----------- |
-| `/:locale/admin` | Admin panel | proxy (optimistic) **and** `adminActionClient` / `requireRole("admin")` server-side |
+| Route | Enforced by |
+| ----- | ----------- |
+| `/:locale/dashboard` · `/settings` | proxy (optimistic) + server check |
+| `/:locale/settings/data` | Account export + deletion — §12 |
+| `/:locale/admin` | proxy **and** `adminActionClient` / `requireRole("admin")` |
 
 **API**
 
-| Route | Method | Description | Auth posture |
-| ----- | ------ | ----------- | ------------ |
-| `/api/auth/[...all]` | GET/POST | Better Auth handler (sessions, OAuth callbacks, password reset) | Public by design — rate limited |
-| `/api/webhooks/stripe` | POST | Stripe events | Public — signature verified, idempotent |
+| Route | Method | Auth posture |
+| ----- | ------ | ------------ |
+| `/api/auth/[...all]` | GET/POST | Public by design, rate limited |
+| `/api/webhooks/stripe` | POST | Public, signature verified, idempotent |
 
 ---
 
-## 4. 🗄️ Domain Model
+## 5. 🗄️ Domain Model
 
-_See `src/lib/db/schema/` for authoritative definitions._
+### Auth entities — generated, do not hand-edit
 
-### Auth entities (managed by Better Auth — do not hand-edit)
+`src/lib/db/schema/auth.ts` is produced by `npm run auth:generate`: `user`, `session`, `account`, `verification`. Domain tables reference `user.id` directly — **there is no external identity to reconcile**, which is the whole point of self-hosting auth.
 
-Generated into `src/lib/db/schema/auth.ts` by the Better Auth CLI: `user`, `session`, `account`, `verification`. Your domain tables reference `user.id` directly — **there is no external identity to sync**, which is the main reason this boilerplate self-hosts auth.
+**`user`** — `id` (uuid v7, PK) · `email` (unique) · `name` · `emailVerified` · `image` · `role` (`"user" | "admin"`, default `"user"`) · **`locale`** (`"es" | "en"`, default `"es"`) · **`marketingConsent`** (boolean, default false) · **`deletedAt`** (soft delete) · `createdAt` · `updatedAt`
 
-- **user:** `id`, `email` (unique), `name`, `emailVerified`, `image`, `role` (`"user" | "admin"`, default `"user"`), `createdAt`, `updatedAt`
+The last three columns are not optional extras: `locale` makes emails correct (§8), `marketingConsent` makes campaigns lawful (§12), `deletedAt` makes erasure auditable (§12).
 
-### Domain entities (example — replace with your own)
+### Domain entities
 
 ```
-(None yet. Add tables to src/lib/db/schema/app.ts and document relationships here.)
+(None yet. Add to src/lib/db/schema/app.ts and document relationships here.)
 ```
 
-### Database Notes
+### Database rules
 
-- **ORM:** Drizzle with the NeonDB serverless driver. **Config:** `drizzle.config.ts`. **Migrations:** `./drizzle/`.
-- **Validation:** derive with `drizzle-zod` (`createInsertSchema` / `createSelectSchema`) in `src/schemas/`, then `.refine()` for business rules. Never hand-write a validator that mirrors a table.
-- **Transactions:** the Neon **HTTP** driver does not support `db.transaction()`. Use the WebSocket Pool driver for paths that need real transactions, or sequence idempotent writes. See §15.
-
----
-
-## 5. 📍 Current Project Status
-
-_Keep under 6 lines. Detailed planning lives in `docs/ROADMAP.md` or GitHub Issues — long checklists in always-loaded context rot and mislead._
-
-- **Phase:** Boilerplate — hardening (see the open items in §1)
-- **Active Task:** None
-- **Blockers:** None
+- **Validation** derives from the schema via `drizzle-zod` in `src/schemas/`, then `.refine()` for business rules.
+- **Transactions:** the Neon **HTTP** driver has no `db.transaction()`. Use the WebSocket Pool driver for those paths, or sequence idempotent writes — §20.
+- **Migrations are expand/contract.** Never destructive in the same deploy as the code change — §19.
+- **Soft delete by default** for anything user-owned. Hard delete only in the erasure flow (§12).
+- **Every foreign key has an index.** Postgres doesn't create them for you.
 
 ---
 
-## 6. 📝 Roadmap
+## 6. 🎨 Design System & UI Craft
 
-Canonical status is the §1 checklist. This is sequencing only.
+### Tokens are the only source of visual truth
 
-### 🟡 Now — close the hardening gaps, in this order
+`src/styles/tokens.css` defines the Tailwind `@theme`. **Never hardcode a color, spacing value, radius, shadow or z-index in a component.** If a value doesn't exist, add a named token first, then use it.
 
-1. [ ] Bump `next` to `16.2.11+`; re-verify that a non-admin cannot reach `/admin`
-2. [ ] Wire Better Auth: generate schema, mount handler, proxy cookie check, `requireAuth`/`requireRole`
-3. [ ] Add `src/lib/safe-action.ts` clients; convert the example action
-4. [ ] Presigned-URL upload flow + R2 CORS configuration
-5. [ ] `drizzle-zod` derivations; delete duplicated validators
-6. [ ] Upstash rate limiting on `/api/auth/*` and every public action
-7. [ ] Security headers + CSP; Sentry PII scrubbing
-8. [ ] Vitest + RTL + MSW + `vitest-axe`; tests for actions, DAL, auth guards, schemas
-9. [ ] Playwright: smoke spec + admin-denied spec
-10. [ ] `eslint-plugin-jsx-a11y` at error; fix fallout
-11. [ ] `.mcp.json` browser MCP; document the visual loop
-12. [ ] React Email templates; `nuqs` adapter in root layout
+| Scale | Rule |
+| ----- | ---- |
+| **Spacing** | 4px base, 8px rhythm. Only `1, 2, 3, 4, 6, 8, 12, 16, 24` steps. Arbitrary values like `p-[13px]` are rejected. |
+| **Type** | Fixed scale, no ad-hoc sizes. Body 16px minimum on mobile — 14px body is an accessibility failure, not a design choice. Line height 1.5 for body, 1.2 for headings. Max measure 75ch. |
+| **Radius** | `sm` 4 (inputs) · `md` 8 (buttons) · `lg` 12 (cards) · `xl` 16 (modals) · `full` (pills, avatars). Don't mix within a component. |
+| **Elevation** | Four steps only: subtle, card, popover, modal. Shadows use the neutral-900 base at low opacity, never pure black. |
+| **Z-index** | Named tokens only: `sticky` → `dropdown` → `popover` → `tooltip` → `overlay` → `modal` → `toast`. Never a raw number. |
+| **Color** | Semantic names (`--color-surface`, `--color-danger-fg`), never literal (`--color-blue-500`) in component code. Dark mode swaps token values, so components need zero conditionals. |
 
-### ⬜ Next — your first feature
+### Every async surface has four states
 
-- [ ] Domain tables in `src/lib/db/schema/app.ts`
-- [ ] `npm run db:push`
-- [ ] `drizzle-zod` schemas in `src/schemas/`
-- [ ] DAL functions in `src/data/`
-- [ ] Actions on `authActionClient` (with tests — §12)
-- [ ] UI pages and components (with visual verification — §0)
+Empty, loading, error, success. Shipping only the success state is the most common UI defect in generated code.
 
----
+- **Empty state** explains what goes here and offers the action that fills it. Never a bare "No data".
+- **Loading** uses a skeleton whose dimensions match the final content, or you've traded a spinner for a layout shift (§10). Skeletons need `aria-busy`.
+- **Error** states what happened, what to do, and offer a retry. Never a raw error string (§3.5).
+- **Optimistic success** where the mutation is safe to assume — `useOptimisticAction`.
 
-## 7. 🧊 Icebox
+### Form UX
 
-_Do NOT implement unless explicitly moved into §6._
+| Rule | Why |
+| ---- | --- |
+| Validate on **blur**, not on change | Validating mid-typing punishes the user for incomplete input |
+| Re-validate on change **only after** the first error | Lets them see the fix land |
+| Disable submit only **while pending**, never because the form is invalid | A disabled button with no explanation is a dead end; submit and show errors |
+| Preserve every input on failure | Losing form data is unforgivable |
+| Correct `autocomplete` and `inputmode` on every field | Autofill and the right mobile keyboard |
+| Error summary at the top for forms over 5 fields, focus moved to it | Screen reader users need the summary; §7 |
+| One primary action per form | Two equal buttons is a decision the user didn't ask for |
 
-- [ ] Dark mode (`next-themes` installed)
-- [ ] Better Auth plugins: passkeys, 2FA, organizations/teams
-- [ ] Analytics (PostHog — would also consolidate session replay with Sentry)
-- [ ] Dynamic OG image generation (`opengraph-image.tsx`)
-- [ ] `llms.txt` / `llms-full.txt` for AI discoverability
-- [ ] Visual regression testing (Playwright snapshots)
-- [ ] Storybook — revisit past ~15 components
-- [ ] Merchant-of-record billing (Polar / Lemon Squeezy) if selling internationally — see §11 Stripe
+### Motion
 
----
+- `motion` library. Enter/exit only for elements that appear or disappear; never decorative.
+- **Duration 150–250ms.** Above 300ms feels broken; below 100ms reads as a glitch.
+- **Ease-out entering, ease-in exiting.**
+- **Animate `transform` and `opacity` only.** Animating `width`, `height`, `top` or `margin` triggers layout on every frame and destroys INP.
+- **Respect `prefers-reduced-motion: reduce`** — reduce to an opacity fade or nothing. This is a WCAG requirement, not a nicety (§7).
+- No animation on the LCP element. No autoplaying loops.
 
-## 8. 🔀 App Flow
+### Mobile ergonomics
 
-```mermaid
-flowchart TD
-    Root["/:locale"]
-    Root -->|session cookie| Dashboard["/:locale/dashboard"]
-    Root -->|no session| Login["/:locale/login"]
-    Login -->|OK| Root
-    SignUp["/:locale/sign-up"] -->|OK| Root
-    Dashboard --> Settings["/:locale/settings"]
+- Primary actions in the bottom third — the thumb zone.
+- Bottom sheet over centered modal on small viewports.
+- **No hover-only affordance.** If it only appears on hover, it doesn't exist on touch.
+- Test at 375×667. Verify at 320px width — the WCAG reflow floor.
+- Safe-area insets respected on notched devices.
 
-    subgraph PublicArea [Public — rate limited]
-        Root
-        Login
-        SignUp
-    end
-    subgraph ProtectedArea [Proxy cookie check + server verification]
-        Dashboard
-        Settings
-    end
-    subgraph AdminArea [Proxy AND adminActionClient / requireRole]
-        Admin["/:locale/admin"]
-    end
-    subgraph PublicAPI [Public by design]
-        AuthAPI["/api/auth/[...all]"]
-        StripeWH["/api/webhooks/stripe"]
-    end
-```
+### UX writing
+
+- Sentence case in UI. Title Case only in legal document titles.
+- Buttons name the action: "Save changes", never "Submit" or "OK".
+- Errors: what happened + what to do. "We couldn't reach the payment provider. Try again in a moment."
+- No "please", no exclamation marks, no blame ("You entered an invalid…" → "That email doesn't look right").
+- Numbers and dates always localized (§8).
+- Every string is a translation key with both locales filled (§8).
 
 ---
 
-## 9. ⚙️ Environment & Secrets
+## 7. ♿ Accessibility — WCAG 2.2 AA
 
-_NEVER hardcode secrets. NEVER commit `.env` files. NEVER echo a secret's value into logs or chat — reference it by key name._
+> Target is **WCAG 2.2 AA**, not 2.1. Automated tools catch roughly a third of real issues; the rest is this section plus the keyboard pass in §0.
 
-### Server-Side (validated in `src/lib/env.ts`)
+### Enforcement layers
 
-| Variable | Description | Example |
-| -------- | ----------- | ------- |
-| `DATABASE_URL` | NeonDB connection string | `postgresql://user:pass@host/db?sslmode=require` |
-| `BETTER_AUTH_SECRET` | Signs sessions and tokens — 32+ random bytes | `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | Canonical base URL for auth callbacks | `https://example.com` |
-| `GITHUB_CLIENT_ID` | OAuth provider (optional) | `Iv1....` |
-| `GITHUB_CLIENT_SECRET` | OAuth provider (optional) | `...` |
-| `GOOGLE_CLIENT_ID` | OAuth provider (optional) | `...apps.googleusercontent.com` |
-| `GOOGLE_CLIENT_SECRET` | OAuth provider (optional) | `...` |
-| `R2_ACCOUNT_ID` | Cloudflare account ID | `xxxxxxxxxxxxxxxx` |
-| `R2_ACCESS_KEY_ID` | R2 access key | `xxxxxxxxxxxxxxxx` |
-| `R2_SECRET_ACCESS_KEY` | R2 secret key | `xxxxxxxxxxxxxxxxxxxx` |
-| `R2_BUCKET_NAME` | R2 bucket name | `your-bucket-name` |
-| `STRIPE_SECRET_KEY` | Stripe private key | `sk_test_...` |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | `whsec_...` |
-| `RESEND_API_KEY` | Resend API key | `re_...` |
-| `RESEND_FROM_EMAIL` | Default sender | `onboarding@resend.dev` |
-| `UPSTASH_REDIS_REST_URL` | Upstash REST endpoint | `https://xxx.upstash.io` |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash token | `AX...` |
+| Layer | Tool | Gate |
+| ----- | ---- | ---- |
+| Lint | `eslint-plugin-jsx-a11y` at **error** | pre-commit + CI |
+| Unit | `vitest-axe` on every interactive component | `npm run test` |
+| E2E | `@axe-core/playwright` scanning every route in both locales, light and dark | CI blocks on new violations |
+| Manual | Keyboard + zoom + reduced-motion pass | §0 DoD |
 
-### Client-Side (validated in `src/lib/env.ts`)
+### Core rules
 
-| Variable | Description | Example |
-| -------- | ----------- | ------- |
-| `NEXT_PUBLIC_APP_URL` | App base URL (canonical, OG, emails). Must equal `BETTER_AUTH_URL`. | `https://example.com` |
-| `NEXT_PUBLIC_R2_PUBLIC_URL` | R2 public bucket URL | `https://pub-xxx.r2.dev` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe public key | `pk_test_...` |
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (safe to expose) | `https://xxx@xxx.ingest.sentry.io/xxx` |
+1. **Radix primitive first.** It ships focus management, ARIA wiring and keyboard behavior. A `<div onClick>` menu is a regression.
+2. **Semantics.** `<button>` for actions, `<Link>` for navigation. Never swap for styling. One `<h1>` per page, no skipped levels. Landmarks: `<header>`, `<nav>`, `<main>`, `<footer>`.
+3. **Visible focus, always.** `focus-visible:ring-2` with a 3:1 contrast ring. Never `outline-none` alone.
+4. **Contrast.** 4.5:1 body text · 3:1 large text, icons, and UI boundaries · 3:1 focus indicators. Verify **both** themes — dark mode is where contrast silently fails.
+5. **Images.** Meaningful `alt`, or `alt=""` when decorative. Always `width`/`height` or `fill` in a sized container.
+6. **Forms.** Every input has a real `<Label htmlFor>` — placeholder is not a label. Errors link via `aria-describedby` and are announced. Required fields marked in text, not by color alone.
+7. **Never convey meaning by color alone.** Status needs an icon or text too.
+8. **Async announcements.** `aria-busy` or a live region. A visual-only spinner is invisible to assistive tech.
+9. **Reduced motion.** Respect it for anything beyond an opacity fade.
+10. **`<html lang>` follows the active locale** — mispronounced content otherwise (§8).
+11. **Zoom and reflow.** Usable at 200% zoom and 320px width with no horizontal scroll and no loss of function.
+12. **No keyboard traps.** Escape closes every overlay and returns focus to the trigger.
 
-### Intentionally outside `env.ts`
+### WCAG 2.2 additions — the ones people miss
 
-Runs before or outside the Next.js runtime, so importing `serverEnv` isn't possible.
+| Criterion | Requirement here |
+| --------- | ---------------- |
+| **2.4.11 Focus Not Obscured** (AA) | A focused element must never be hidden behind a sticky header, footer bar, cookie banner or toast. Sticky chrome needs `scroll-margin` on focusable content. This is the most commonly broken 2.2 criterion. |
+| **2.5.7 Dragging Movements** (AA) | Anything draggable (reorder, slider, file drop) needs a non-drag alternative — buttons, arrow keys, or a file picker. |
+| **2.5.8 Target Size** (AA) | 24×24px CSS minimum with adequate spacing. **This project targets 44×44** for touch, which comfortably exceeds it. |
+| **3.2.6 Consistent Help** (A) | Support access appears in the same relative position on every page where it exists. |
+| **3.3.7 Redundant Entry** (A) | Never ask for the same information twice in one flow. Prefill or offer to reuse — relevant in sign-up and checkout. |
+| **3.3.8 Accessible Authentication** (AA) | No cognitive function test without an alternative. Concretely: **allow paste into every password and OTP field**, don't block password managers, and offer passkeys or magic links. A CAPTCHA with no alternative path is a violation. Better Auth supports passkeys — see Icebox. |
 
-| Variable | Used in | Why |
-| -------- | ------- | --- |
-| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | `next.config.ts` (token: CI only) | Build-time source map upload |
-| `DATABASE_URL` | `drizzle.config.ts` | Drizzle Kit runs outside Next.js |
+### Testing what tools can't
 
-**Notes:**
-
-- Files: `.env.local` (dev), hosting provider secrets (production). `.env.example` is committed with placeholders and stays in sync with the tables above.
-- Validation runs at import time and fails fast with a message naming the missing key.
-- **`SKIP_ENV_VALIDATION` is discouraged.** It disables the only guard that catches a missing production variable, converting a loud build failure into a silent outage. CI uses a committed `.env.ci` of syntactically valid placeholders so validation actually runs. See §15.
+Automated scans miss: whether `alt` text is *useful*, whether focus order is *logical*, whether an error message is *actionable*, and whether the whole flow is completable without sight. Reserve manual review for those. Full compliance validation requires testing with real assistive technology and expert review — automated gates raise the floor, they don't certify the ceiling.
 
 ---
 
-## 10. 🧰 Key Commands
+## 8. 🌐 Internationalization
 
-| Command | Description |
-| ------- | ----------- |
-| `npm run dev` | Dev server |
-| `npm run build` | Production build |
-| `npm run start` | Production server |
-| `npm run lint` / `lint:fix` | ESLint (zero warnings tolerated) |
-| `npm run format` / `format:check` | Prettier |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run test` | Vitest, single run |
-| `npm run test:watch` | Vitest watch — **run manually, never from an agent** |
-| `npm run test:e2e` | Playwright |
-| `npm run validate` | Full CI: typecheck + lint + format + test + build |
-| `npm run clean` | Delete `.next` cache (fixes stale type errors) |
-| `npm run auth:generate` | `npx @better-auth/cli generate` — regenerate auth schema |
-| `npm run db:push` / `db:generate` / `db:migrate` / `db:studio` / `db:seed` | Drizzle Kit |
-| `npm run email:dev` | React Email preview server — **run manually** |
-| `npx shadcn@latest add [component]` | Add a Shadcn/UI component |
+### Routing decisions — declared once, never improvised
 
-> **Agents:** never start a long-running process (`dev`, `test:watch`, `db:studio`, `email:dev`). Use `npm run test` and `npm run build`. For Playwright, let the config's `webServer` manage the server.
+- **Locales:** `es` (default), `en`. In `src/i18n/config.ts`.
+- **`localePrefix: "always"`.** Every locale carries its prefix, including the default. Bare `/pricing` **302**-redirects to the negotiated locale.
+  - **Why not `as-needed`:** without a prefix on the default locale, `/pricing` and `/es/pricing` both resolve — duplicate content. `always` costs one redirect and removes the ambiguity.
+- **Negotiation uses 302, never 301.** A permanent redirect teaches Googlebot — crawling from US IPs with `Accept-Language: en` — that English *is* the site, and the Spanish version never gets crawled. Every locale must also be directly reachable without negotiation.
+- **`timeZone` declared explicitly** in `src/i18n/request.ts`. Omitting it means server and client format in different zones → hydration mismatch (§20).
+- **`user.locale` persists preference** across devices and drives outbound email.
 
----
+### Translation rules
 
-## 11. 🔌 Third-Party Integrations
-
-### Better Auth (Authentication) — self-hosted
-
-- **Purpose:** sessions, email/password, OAuth, password reset, roles. Users live in **your** Postgres.
-- **Package:** `better-auth` · **Docs:** https://www.better-auth.com
-- **Key files:** `src/lib/auth.ts` (instance + `getSession`, `requireAuth`, `requireRole`), `src/lib/auth-client.ts`, `src/app/api/auth/[...all]/route.ts`, `src/lib/db/schema/auth.ts` (generated), `src/proxy.ts`
-- **Env:** `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, optional OAuth provider pairs
-- **Why this over a hosted vendor:** no external identity to reconcile. There is no `clerk_id` column, no user-sync webhook, no eventual consistency between two user stores, and no per-user bill. Better Auth covers email/password, OAuth, magic links, 2FA and organizations in one library rather than separate plugins ([overview](https://getnextjstemplates.com/blogs/best-nextjs-user-authentication-resources)), and has a first-class Drizzle adapter ([docs](https://www.better-auth.com/docs/adapters/drizzle)).
-- **Documented alternative — Clerk:** if prebuilt auth UI and a hosted user-management dashboard matter more than owning the data, Clerk ships faster; its free tier now covers 50,000 monthly retained users ([LogRocket](https://blog.logrocket.com/best-auth-library-nextjs-2026/)). The cost is a `clerk_id` foreign identity plus a sync webhook you maintain. Choose deliberately; migrating identities later is the most expensive migration in the stack. Comparison details paraphrased for licensing compliance.
-- **Critical:** do not query the database inside `proxy.ts`. Use Better Auth's session-cookie helper for an optimistic redirect only, then verify the real session server-side in the page or action. See §15.
-
-### next-safe-action (Server Action layer)
-
-- **Purpose:** end-to-end type safety from input validation to action result, with chainable middleware for auth and metadata ([docs](https://next-safe-action.dev/docs/introduction)).
-- **Package:** `next-safe-action` · **Key file:** `src/lib/safe-action.ts`
-- **Three clients:**
-  - `actionClient` — public actions. Rate limiting is mandatory here.
-  - `authActionClient` — extends with session middleware; `ctx.user` is guaranteed.
-  - `adminActionClient` — extends with `role === "admin"`; throws `ForbiddenError` otherwise.
-- **Why it's a constraint and not a convenience:** a Server Action is a network endpoint. Next.js provides CSRF defense, encrypted closures and rotating action IDs, but its own documentation is explicit that these are not a substitute for application-level authorization ([production patterns](https://www.digitalapplied.com/blog/nextjs-server-actions-production-patterns-2026-guide)); action ID encryption is not authentication ([analysis](https://dev.to/shubhradev/nextjs-16-server-actions-security-the-auth-check-most-developers-miss-1ei1)). A 2026 security review put the failure mode bluntly: without strict payload validation, an author can create an unauthenticated RPC endpoint by accident ([dev.to](https://dev.to/adioof/server-actions-blur-the-client-server-line-and-juniors-are-paying-for-it-4plc)). Findings paraphrased for licensing compliance. Middleware makes the guard structural — you cannot define an action without passing through it. For AI-generated code, structural enforcement beats documented convention every time.
-
-### Cloudflare R2 (Object Storage) — presigned URLs
-
-- **Purpose:** file/image storage, S3-compatible.
-- **Package:** `aws4fetch` · **Dashboard:** https://dash.cloudflare.com → R2
-- **Key file:** `src/lib/r2.ts` — `presignPutUrl({ key, contentType, contentLength })`, `publicUrl(key)`
-- **Env:** `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `NEXT_PUBLIC_R2_PUBLIC_URL`
-- **Flow:**
-  1. Client asks an `authActionClient` action for a presigned PUT URL, sending filename, MIME type and size.
-  2. Server validates type and size against `UPLOAD` in `@/lib/constants`, **generates the object key itself** (`${user.id}/${crypto.randomUUID()}.${ext}`), signs a short-lived URL (≤5 min), returns it.
-  3. FilePond PUTs the file **directly to R2** with the exact signed `Content-Type` and `Content-Length`.
-  4. Client reports the key back to a second action, which persists it.
-- **Why not FormData through a Server Action:** that routes file bytes through your serverless function, which has a body size limit around 4.5MB on Vercel. A 6MB phone photo fails with an opaque error. It also bills you compute for bytes you're only relaying. Presigned upload has no size ceiling and no relay cost.
-- **Requires:** R2 bucket CORS configured for your origins, or the browser PUT fails. See §15.
-
-### Stripe (Payments)
-
-- **Purpose:** payments, subscriptions, checkout.
-- **Packages:** `stripe` (server), `@stripe/stripe-js` (client) · **Dashboard:** https://dashboard.stripe.com
-- **Webhook:** `/api/webhooks/stripe` · **Local:** `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
-- **Key files:** `src/lib/stripe.ts`, `src/app/api/webhooks/stripe/route.ts`
-- **Env:** `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
-- **Critical:** handlers must be **idempotent**. Stripe retries, so a handler that grants credit or sends email fires twice unless you dedupe on `event.id` before any side effect.
-- **Documented alternative:** Stripe leaves global VAT and sales-tax compliance to you. A merchant of record (Polar, Lemon Squeezy) takes a higher cut and absorbs that obligation. For solo developers selling internationally that trade is often worth it. See Icebox.
-
-### Resend + React Email
-
-- **Purpose:** transactional email delivery and templates.
-- **Packages:** `resend`, `@react-email/components`, `@react-email/render` · **Dashboard:** https://resend.com/overview
-- **Key files:** `src/lib/resend.ts`, `src/lib/email/send.ts`, `src/lib/email/templates/*.tsx`
-- **Env:** `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
-- **Why React Email over HTML strings:** email clients are a compatibility minefield — Outlook renders through Word, Gmail strips much of `<head>`, and flexbox is unreliable. Maintaining that by hand in template strings does not survive past the second template. React Email ships the table layouts and hacks already solved, plus local preview via `npm run email:dev`.
-- **Security:** never send an unvalidated user-supplied address in the `to` field. That's an open relay for spam.
-
-### NeonDB (Database)
-
-- **Purpose:** serverless PostgreSQL.
-- **Packages:** `@neondatabase/serverless`, `drizzle-orm` · **Dashboard:** https://console.neon.tech
-- **Key files:** `src/lib/db/index.ts`, `src/lib/db/schema/`, `src/lib/db/seed.ts`, `drizzle.config.ts`
-- **Env:** `DATABASE_URL`
-- **Branching:** use Neon branches for preview deploys so previews never touch production data.
-
-### Upstash Redis (Rate Limiting)
-
-- **Purpose:** distributed rate limiting that survives serverless cold starts.
-- **Packages:** `@upstash/ratelimit`, `@upstash/redis` · **Dashboard:** https://console.upstash.com
-- **Key file:** `src/lib/rate-limit.ts`
-- **Env:** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-- **Applied to:** `/api/auth/*`, every `actionClient` (public) action, and the presign action.
-
-### Sentry (Error Monitoring)
-
-- **Purpose:** error tracking, performance, Web Vitals, session replay.
-- **Package:** `@sentry/nextjs` · **Dashboard:** https://sentry.io
-- **Key files:** `instrumentation-client.ts`, `src/instrumentation.ts`, `src/sentry.{server,edge}.config.ts`, `next.config.ts` (`withSentryConfig`), `src/app/global-error.tsx`, `src/lib/logger.ts`
-- **Env:** `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`
-- **Critical:** configure `beforeSend` scrubbing and mask session replay inputs **before** enabling in production, or you ship PII to a third party.
+1. **Key parity is enforced by the type system.** `messages/es.json` is the source; the `IntlMessages` type is augmented from it, so a missing or misspelled key is a **TypeScript error**, not a silent runtime fallback. `npm run i18n:check` verifies parity explicitly in CI.
+2. **Zero string literals in JSX** — `eslint-plugin-i18next` `no-literal-string` at error.
+3. **Key naming:** namespaced by feature, `camelCase` leaves — `dashboard.emptyState.title`. **Never reuse a key across contexts.** A shared "Save" breaks in languages where the verb inflects for its object.
+4. **Plurals use ICU, always.** `{count, plural, =0 {…} one {…} other {…}}`. Never `count === 1 ? a : b` — that hardcodes two languages' plural rules into your components.
+5. **Never format data by hand.** Dates, times, numbers, currency, percentages, relative time and lists go through `useFormatter` / `getFormatter`. No `toLocaleDateString('en-US')`, no `` `$${price}` ``. Spanish uses a comma decimal separator.
+6. **Sorting uses `Intl.Collator`.** Plain `.sort()` misplaces accented characters.
+7. **Validation errors are translated.** A locale-aware Zod error map maps issue codes to translation keys. Raw English Zod output is user-facing copy that bypassed i18n entirely — one of the most common leaks.
+8. **`getFriendlyErrorMessage()` returns a key**, never a string. The component translates.
+9. **Emails are sent in the recipient's locale.** `sendEmail()` takes `locale`, defaults to `user.locale`, resolves copy via `getTranslations({ locale })`. React Email templates contain zero hardcoded sentences.
+10. **Metadata is translated.** `generateMetadata` must `await getTranslations({ locale })` — it runs outside the component tree and does not inherit the request locale.
+11. **RTL-ready from day one.** Logical properties only: `ms-*`/`me-*` not `ml-*`/`mr-*`, `ps-*`/`pe-*`, `text-start`/`text-end`, `border-s`/`border-e`. Free now; a full restyle later.
+12. **Never concatenate translated fragments.** Word order differs between languages. Use one key with interpolation.
+13. **Leave room for expansion.** German and Spanish run 20–30% longer than English. No fixed-width buttons or single-line truncation on translated labels.
 
 ---
 
-## 12. 🧪 Testing Strategy
+## 9. 🔍 SEO
 
-> AI-generated code needs **more** verification than hand-written code, not less. `npm run build` proves it compiles; it proves nothing about behavior. This section is what replaces "write tests only when asked."
+> In a `[locale]`-routed app, i18n and SEO are the same problem. Translation work is invisible to search engines until the relationships are declared.
 
-### What requires a test (non-negotiable)
+### Per-page metadata — all five are mandatory
 
-| Code | Test required | Why |
-| ---- | ------------- | --- |
-| Server Actions (`src/actions/`) | **Yes** — happy path, unauthenticated, wrong role, invalid input | Network endpoints with the highest blast radius |
-| DAL functions (`src/data/`) | **Yes** | Data correctness, cheap to test |
-| Auth guards (`src/lib/auth.ts`) | **Yes** — especially the negative cases | A broken guard is a breach |
-| `safe-action` middleware (`src/lib/safe-action.ts`) | **Yes** | Everything else depends on it holding |
-| Zod / drizzle-zod schemas | **Yes** — valid and invalid input | The security boundary |
-| Stripe webhook handler | **Yes** — invalid signature rejected, duplicate `event.id` is a no-op | Public endpoint, retried by Stripe |
-| Presign action | **Yes** — oversized and wrong-MIME rejected, key generated server-side | Abuse surface |
-| Business logic in `src/lib/` | **Yes** | Pure functions, trivial |
-| Custom hooks | **Yes** | Stateful logic |
-| Interactive components (forms, dialogs) | **Yes** — behavior + a11y assertion | Where users actually break things |
-| Presentational components | Optional | Low value; covered by visual verification |
-| `components/ui/` Shadcn primitives | No | Upstream, already tested |
-| `src/lib/db/schema/auth.ts` | No | Generated by the Better Auth CLI |
+Every public page exports `generateMetadata` via `buildMetadata()` in `src/lib/seo.ts`:
 
-### Layers
+1. **Translated title and description.** A Spanish page with an English `<title>` is the most common i18n-SEO failure. Unique per page — copy-pasted metadata across routes tells Google your pages are duplicates.
+2. **Self-referencing canonical** for the current locale. `metadataBase` resolves relative URLs; it does not emit a canonical.
+3. **`alternates.languages` for every locale plus `x-default`.** Next.js turns this into `<link rel="alternate" hreflang>` tags automatically. Without it Google treats locale variants as duplicates and indexes one arbitrarily. `x-default` points at the **unprefixed root** — the locale-negotiating page — and signals the page that targets no specific language.
+4. **`openGraph.locale` + `alternateLocale`**, with a 1200×630 image.
+5. **Explicit `robots`** — see indexing rules.
 
-**Unit + component — Vitest + React Testing Library.** Query by accessible role and label (`getByRole`, `getByLabelText`), never by test id or class. A test that can't find the button by its accessible name is telling you the component is inaccessible — fix the component, not the test. Add `expect(await axe(container)).toHaveNoViolations()` to interactive component tests via `vitest-axe`.
+### Indexing rules
 
-**Network mocking — MSW.** Mock at the network layer, not by stubbing modules. Handlers live in `tests/mocks/`. Never mock your own DAL in an action test — mock the external HTTP call (Stripe, Resend, R2).
+- **`noindex` outside production.** `robots.ts` returns a global disallow unless the deployment is production. An indexed preview is duplicate content and an information leak.
+- **`noindex, nofollow`** on `/login`, `/sign-up`, `/forgot-password`, `/reset-password`, `/dashboard/*`, `/settings/*`, `/admin/*`, `/api/*`.
+- **`sitemap.ts` emits every locale**, each entry carrying its `alternates.languages` map. Build alternates from the **unprefixed** path or you get `/es/es/pricing` (§20).
+- **Legal pages are indexable** and localized — they're trust signals.
 
-**E2E — Playwright.** Keep it thin. Critical paths only: sign-up → dashboard, checkout, and one admin-denied case. E2E is expensive and flaky at volume; unit tests carry the load. The config's `webServer` manages the server so agents never start one manually.
+### Structured data (JSON-LD), server-rendered
 
-### Visual verification loop (required for UI work)
+| Schema | Where |
+| ------ | ----- |
+| `Organization` + `WebSite` | Root layout |
+| `BreadcrumbList` | Any page deeper than one level |
+| `SoftwareApplication` + `Offer` | Pricing |
+| `FAQPage` | FAQ sections only, and only for genuinely visible Q&A |
+| `inLanguage` | Localized per locale on every entity |
 
-A browser MCP (Chrome DevTools MCP or Playwright MCP) is configured in `.mcp.json`. Without it an agent writes Tailwind blind and the human becomes the browser. The loop:
+Validate against Rich Results Test before shipping. Marking up content that isn't visible on the page is a manual-action risk.
 
-1. Render the affected route
-2. Screenshot at 375px and 1280px
-3. Compare against intent (design reference or stated requirement)
-4. Fix and repeat until it matches
-5. Tab through to confirm focus order and visible focus rings
+### Local SEO — only if there is a real physical presence
 
-Part of the Definition of Done in §0. UI is never reported as done unsighted.
+**Do not add `LocalBusiness` markup for a purely online product.** Claiming a location you don't operate from is spam and gets manual actions. If the business does have premises or a service area:
+
+| Requirement | Detail |
+| ----------- | ------ |
+| `LocalBusiness` JSON-LD | Or the specific subtype. Include `address` (full `PostalAddress`), `geo`, `telephone`, `openingHoursSpecification`, `priceRange`, `sameAs` social profiles |
+| **NAP consistency** | Name, Address, Phone identical byte-for-byte across the site, Google Business Profile, and every directory. Inconsistency is the top local ranking problem |
+| Google Business Profile | Claimed, verified, categories and hours current. Ranking lives here more than on your site |
+| Location pages | One per location with genuinely unique content — address, staff, local landmarks, embedded map. Templated pages with a swapped city name get filtered |
+| Service area | `areaServed` in markup, and real content about those areas |
+| Reviews | Only mark up reviews you actually display. `AggregateRating` on invisible data is a violation |
+| `hreflang` + local | A locale and a region are different axes. `es` is a language; `es-MX` targets a market. Only split by region when the content genuinely differs |
+
+### Technical SEO baseline
+
+- Server-render everything a crawler needs. Content behind `useEffect` may never be indexed.
+- Static or ISR for marketing routes; never client-side-only.
+- One `<h1>`, meaningful heading hierarchy — the same structure that serves screen readers serves crawlers.
+- Internal links use `<Link>` with descriptive text. Never "click here".
+- `next/image` with dimensions — CLS is a ranking input (§10).
+- 404s return real 404 status. Soft 404s waste crawl budget.
+- Redirects: 301 for permanent moves, 302 for locale negotiation only.
+- `manifest.ts` + `opengraph-image.tsx` present.
+- Consider `llms.txt` for AI crawler discoverability — Icebox.
+
+---
+
+## 10. ⚡ Performance Budgets
+
+Enforced by Lighthouse CI in the pipeline. A regression past budget fails the build.
+
+| Metric | Budget | Notes |
+| ------ | ------ | ----- |
+| **LCP** | < 2.5s | Usually the hero image or heading |
+| **INP** | < 200ms | Usually a too-large client component or a layout-animating transition |
+| **CLS** | < 0.1 | Images without dimensions, injected banners, font swap |
+| **TTFB** | < 600ms | Watch DB round-trips in RSC |
+| First-load JS (marketing route) | < 150KB gzipped | |
+| First-load JS (app route) | < 250KB gzipped | |
+| Lighthouse Performance (marketing) | ≥ 95 | |
+| Lighthouse Accessibility | 100 | Non-negotiable |
 
 ### Rules
 
-- Test behavior, not implementation. No assertions on internal state or call counts unless the call *is* the contract ("the payment provider was charged exactly once").
-- One assertion concept per test; names state the expected behavior.
-- No snapshot tests of large trees — they pass on breakage and fail on formatting.
-- Deterministic: no real network, no real clock (`vi.useFakeTimers()`), no shared mutable state.
-- A failing test is fixed, never skipped or deleted, without explicit approval.
+**Rendering**
+
+- Server Components by default. Every `"use client"` is measured JS shipped to users.
+- `next/dynamic` with `ssr: false` for heavy client-only libraries.
+- Never define ReactFlow-style `nodeTypes`, chart configs, or option objects inside a component — module scope or `useMemo`.
+- Suspense boundaries around slow data so the shell paints immediately.
+
+**Images**
+
+- `next/image` always, with explicit `width`/`height` or `fill` in a sized container.
+- AVIF/WebP via the built-in optimizer. `loading="lazy"` by default; the LCP image gets `priority` and `fetchpriority="high"` and is never lazy.
+- R2 domain registered in `images.remotePatterns`.
+
+**Fonts**
+
+- `next/font`, self-hosted, subset to the glyphs you use. `display: "swap"`. Preload only the LCP font. Two families maximum.
+
+**Data**
+
+- Parallel independent queries — never an `await` waterfall in RSC.
+- Index every column you filter or sort on. Every FK.
+- No N+1 in the DAL: join or batch.
+- Cache with explicit `revalidate` or tags. Never cache authenticated data at the CDN.
+
+**Lists**
+
+- Virtualize anything that can exceed ~50 rows (`react-window`), or paginate. Both is better.
+- Stable `key` — never the array index.
+
+**Bundle**
+
+- Import subpaths, not barrels: `import debounce from "lodash/debounce"`.
+- No barrel files re-exporting a directory.
+- Check `npm run analyze` before adding any dependency over 20KB.
+
+**Third parties**
+
+- Every third-party script is a budget line item. Load after interaction or after consent (§12), never blocking.
+- Analytics must never block paint or shift layout.
 
 ---
 
-## 13. 🔒 Security Baseline
+## 11. 📣 Marketing, Analytics & Growth
 
-### ⚠️ Open security items
+### Event taxonomy — a contract, not a habit
 
-| Item | Status | Action |
-| ---- | ------ | ------ |
-| **`next` below the patched floor** | **Open** | Upgrade to `16.2.11+`. The July 2026 Next.js advisory covers nine issues including SSRF, a **middleware/proxy authorization bypass**, DoS, and cache identifier disclosure, patched in `15.5.21` and `16.2.11` ([Netlify](https://www.netlify.com/changelog/2026-07-21-nextjs-security-vulnerabilities/), [release notes](https://releasebot.io/updates/vercel/next-js)). The middleware bypass is directly relevant because `/admin` navigation gating lives in `src/proxy.ts` — and is exactly why enforcement must also exist server-side. After upgrading, verify a non-admin cannot reach `/admin`. Details paraphrased for licensing compliance. |
-| No security headers / CSP | Open | Add `headers()` to `next.config.ts`: HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `frame-ancestors`, and a CSP with nonces |
-| Sentry PII scrubbing not configured | Open | `beforeSend` filtering + replay input masking before production |
+Untyped tracking rots within a month. Every event is declared in `src/lib/analytics.ts` as a typed registry; `track()` accepts only registered names with their required properties. An unregistered event is a **type error**. Human-readable catalog in `docs/EVENTS.md`.
+
+| Rule | Detail |
+| ---- | ------ |
+| Naming | `object_action`, snake_case, past tense: `checkout_started`, `subscription_activated` |
+| Properties | snake_case, no PII in property values — ID references only |
+| Never fire from mount effects | React Strict Mode double-invokes in dev and you'll ship double counts. Fire from the actual interaction or a server action |
+| Revenue is server-side truth | Conversions come from the **Stripe webhook**, never a client "thank you" page. Client-side purchase events are lost to ad blockers and abandoned tabs |
+| Identify on auth | Alias the anonymous ID to `user.id` at login so pre-signup sessions stitch to the account |
+| No event before consent | §12 |
+
+### Attribution
+
+- Capture UTM parameters on first landing, store **first-touch** and **last-touch** on the user record. Session-only attribution loses the multi-visit path, which is most B2B.
+- Server-side conversion reporting where the platform supports it — client pixels are unreliable.
+- Never let a tracking parameter create a crawlable URL variant. Canonical excludes query params (§9).
+
+### Experiments
+
+- Feature flags and A/B assignment via PostHog, **resolved server-side**. Client-side variant swapping causes a flash of the control and a CLS hit that fails §10.
+- Every experiment declares its hypothesis, primary metric and minimum sample before launch. Stopping early on a favorable peek is how teams ship noise.
+- Flags are cleaned up after the decision. Stale flags are dead branches an agent will treat as live paths.
+
+### Landing page conventions
+
+- One `<h1>` stating the value proposition, above the fold, no scroll needed.
+- **One primary CTA** repeated, not five competing ones.
+- Proof near the ask: logos, numbers, testimonials.
+- LCP element is text or a `priority` image — never a carousel, never a video.
+- Forms ask for the minimum. Every extra field costs conversion.
+- Copy passes the §7 reading rules and the §8 translation rules. A marketing page that only exists in English defeats the i18n work.
+
+### Email
+
+| Type | Rules |
+| ---- | ----- |
+| **Transactional** (receipts, resets, verification) | Sent regardless of marketing consent — legitimate interest. Never contains promotional content, or it becomes marketing |
+| **Marketing** (campaigns, newsletters) | Requires `user.marketingConsent === true`. One-click unsubscribe honored immediately. Physical address and unsubscribe link in every message |
+
+Both are localized via `user.locale` (§8). Separate sender identities so a marketing complaint never damages transactional deliverability. Verify SPF, DKIM and DMARC before the first send.
+
+---
+
+## 12. 🔐 Privacy, Legal & Compliance
+
+### Consent gate
+
+**No non-essential cookie, script, or event before explicit consent.** Analytics, session replay and marketing pixels load *after* the user opts in. Essential cookies (session, locale, consent state) need no consent and are documented as such.
+
+- Consent choice is stored, versioned, and re-requested when the policy changes.
+- Rejecting is exactly as easy as accepting — one click, equal visual weight. A pre-checked opt-in or a hidden reject button is not consent.
+- The banner must not obscure focused content (§7, 2.4.11) and must be keyboard operable.
+
+### Required pages — localized, indexable
+
+Privacy Policy · Terms of Service · Cookie Policy, each listing the actual subprocessors below. A generic template naming services you don't use is worse than none.
+
+### Subprocessor inventory
+
+| Vendor | Data | Purpose |
+| ------ | ---- | ------- |
+| Vercel | Request metadata, IP | Hosting |
+| Neon | All application data | Database |
+| Better Auth *(self-hosted)* | — | Auth runs in your infra; no third party sees credentials |
+| Stripe | Name, email, payment data | Payments |
+| Resend | Email address, content | Transactional + marketing email |
+| Cloudflare R2 | Uploaded files | Storage |
+| Upstash | IP hashes | Rate limiting |
+| Sentry | Error context, scrubbed | Error monitoring |
+| PostHog | Behavioral events, replay | Analytics, flags |
+
+Keep this current. A DPA is required with each, and the list must match reality — it's the first thing a data request asks for.
+
+### User rights — implemented, not promised
+
+| Right | Implementation |
+| ----- | -------------- |
+| **Access / portability** | `/settings/data` exports all user data as JSON |
+| **Erasure** | Account deletion: hard-deletes PII, retains the minimum required for legal and financial records, cascades a deletion request to Stripe, Sentry and PostHog |
+| **Rectification** | Editable profile |
+| **Consent withdrawal** | Toggle in settings, effective immediately |
+
+Erasure is the one most boilerplates skip and the one most likely to be requested. **Both flows are E2E tested** (§14) — a broken export is a compliance failure, not a bug.
+
+### Data minimization
+
+- Collect only what a feature needs today. "We might want it later" is not a basis.
+- **Never log PII** — identifiers only (§3.9).
+- Sentry `beforeSend` scrubbing and session replay input masking configured **before** production, or you ship PII to a third party.
+- Documented retention: logs 30d, sessions 90d, deleted accounts purged after the legal minimum.
+- Secrets never in code, never in client bundles, never in agent output.
+
+---
+
+## 13. 🛡️ Security Baseline
+
+### ⚠️ Open items
+
+| Item | Action |
+| ---- | ------ |
+| **`next` below the patched floor** | Upgrade to **`16.2.11+`**. The July 2026 advisory covers nine issues including SSRF, a **middleware/proxy authorization bypass**, DoS, and cache identifier disclosure, patched in `15.5.21` and `16.2.11` ([Netlify](https://www.netlify.com/changelog/2026-07-21-nextjs-security-vulnerabilities/), [release notes](https://releasebot.io/updates/vercel/next-js)). The middleware bypass is directly relevant because `/admin` navigation gating lives in `proxy.ts` — and is precisely why enforcement must also be server-side. After upgrading, verify a non-admin cannot reach `/admin`. Details paraphrased for licensing compliance. |
+| Security headers / CSP | `headers()` in `next.config.ts`: HSTS with preload, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, and a nonce-based CSP with `frame-ancestors 'none'` |
+| Sentry PII scrubbing | `beforeSend` + replay masking before production |
 
 ### Standing rules
 
-1. **Authorization is server-side, always.** The proxy provides an optimistic cookie check for navigation UX. Every action and route handler that reads or mutates protected data re-verifies through `authActionClient` / `adminActionClient` / `requireRole()`. A route protected only by the proxy is one middleware CVE away from public — and that CVE shipped this year.
-2. **Every Server Action is a public endpoint until proven otherwise.** No bare `"use server"` exports. The `next-safe-action` client is the only entry point, because it makes validation and the auth guard impossible to forget.
-3. **Validate at every trust boundary.** Actions, route handlers, webhooks and env vars all parse with Zod. Client-side validation is UX, never security.
-4. **Verify every webhook signature before doing any work.** Reject with 400 and log the rejection. Never parse the body first.
-5. **Never trust client-supplied identifiers.** Derive `userId` from the session, never from the payload. Generate storage object keys server-side — a client-supplied filename is path traversal and overwrite risk.
-6. **Never expose internals in errors.** User-facing text goes through `getFriendlyErrorMessage()`. Stack traces, SQL and provider strings go to Sentry, not the browser.
-7. **No secrets in client code.** Anything `NEXT_PUBLIC_*` is public. Before adding the prefix, confirm the value is safe on a billboard.
-8. **Rate-limit every public input path:** `/api/auth/*`, every `actionClient` action, uploads, contact forms.
-9. **Scrub PII before it leaves.** `logger` logs identifiers, never bodies or credentials. Sentry filtering is configured before production.
-10. **Public endpoints are declared, not discovered.** The only intentionally public endpoints are `/api/auth/[...all]` (rate limited) and `/api/webhooks/stripe` (signature verified, idempotent), both listed in §3. Adding another requires an entry there with justification and abuse mitigation.
-11. **Dependencies:** pin exact runtime versions. Review any new package for maintenance status and name-squatting before proposing it. Security advisories triaged within the week.
-12. **Sessions:** `BETTER_AUTH_SECRET` is 32+ random bytes and rotates on suspicion of compromise. Cookies are `httpOnly`, `secure`, `sameSite: "lax"`.
+1. **Authorization is server-side, always.** The proxy is optimistic UX. Every action and handler re-verifies via `authActionClient` / `adminActionClient` / `requireRole()`. Proxy-only protection is one middleware CVE from public — and that CVE shipped this year.
+2. **Every Server Action is a public endpoint until proven otherwise.** Next.js provides CSRF defense, encrypted closures and rotating action IDs, but its own docs are explicit that these don't replace application-level authorization ([production patterns](https://www.digitalapplied.com/blog/nextjs-server-actions-production-patterns-2026-guide)); action-ID encryption is not authentication ([analysis](https://dev.to/shubhradev/nextjs-16-server-actions-security-the-auth-check-most-developers-miss-1ei1)). A 2026 review put the failure mode bluntly: without strict payload validation an author can create an unauthenticated RPC endpoint by accident ([dev.to](https://dev.to/adioof/server-actions-blur-the-client-server-line-and-juniors-are-paying-for-it-4plc)). Findings paraphrased for licensing compliance. **This is why `next-safe-action` is a constraint and not a convenience:** middleware makes the guard impossible to forget.
+3. **Validate at every trust boundary.** Actions, handlers, webhooks, env vars — all parse with Zod. Client validation is UX, never security.
+4. **Verify every webhook signature before doing any work.** Reject 400, log the rejection, never parse first.
+5. **Never trust client-supplied identifiers.** Session-derived `userId`; server-generated storage keys. A client filename is path traversal and overwrite risk.
+6. **No internals in errors.** `getFriendlyErrorMessage()` for users; stack traces to Sentry.
+7. **No secrets in client code.** `NEXT_PUBLIC_*` is public. Confirm the value is billboard-safe before adding the prefix.
+8. **Rate-limit every public input path:** `/api/auth/*`, every `actionClient` action, uploads, contact forms, password reset.
+9. **Sessions.** `BETTER_AUTH_SECRET` is 32+ random bytes, rotated on suspicion. Cookies `httpOnly`, `secure`, `sameSite: "lax"`.
+10. **Auth hardening.** Rate-limit and progressively delay failed logins. Never reveal whether an email exists ("If that address is registered, we sent a link"). Password reset tokens are single-use and short-lived. **Allow paste and password managers** — blocking them is both a security and an accessibility failure (§7, 3.3.8).
+11. **Uploads.** Validate MIME and size server-side; never trust the client. Serve user files from a separate origin so a malicious upload can't script against your session.
+12. **Public endpoints are declared, not discovered.** Only `/api/auth/[...all]` (rate limited) and `/api/webhooks/stripe` (signature verified, idempotent). Adding one requires an entry in §4 with justification and mitigation.
+13. **Dependencies.** Pin exact runtime versions. Vet maintenance status and typosquatting before proposing.
 
 ---
 
-## 14. 🚀 Deployment
+## 14. 🧪 Testing Strategy
 
-- **Hosting:** Vercel
-- **Production URL:** (configure after first deploy) · **Staging:** (if needed)
-- **Branches:** `main` → production (auto-deploy); `develop` → staging; feature branches → preview. Never push directly to `main`.
-- **CI/CD:** `.github/workflows/ci.yml` runs typecheck + lint + format + **test** + build on every push/PR. Vercel deploys on merge.
-- **CI env:** `.env.ci` placeholders so env validation actually runs. Do not set `SKIP_ENV_VALIDATION`.
-- **Preview deploy safety:** previews must use **test** keys for Stripe and Resend, a **Neon branch** database, and OAuth apps with preview callback URLs registered. A preview wired to production credentials charges real cards and emails real users.
-- **Auth URLs:** `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the deployment origin, or OAuth callbacks and cookies break. Preview deploys need this set per-environment.
-- **Dependencies:** Dependabot weekly for npm and GitHub Actions.
-- **Domain/DNS:** Vercel dashboard.
+> AI-generated code needs **more** verification, not less. `npm run build` proves it compiles and nothing else. This section is what replaces "write tests only when asked."
+
+### Mandatory coverage
+
+| Code | Required cases |
+| ---- | -------------- |
+| Server Actions | Happy path · unauthenticated · wrong role · invalid input · rate limited |
+| DAL functions | Correct data, correct filters |
+| Auth guards | **Especially the negative cases** — a broken guard is a breach |
+| `safe-action` middleware | Everything else depends on it holding |
+| Zod / drizzle-zod schemas | Valid and invalid input |
+| **Zod locale error map** | Errors render in `es` and `en` |
+| Stripe webhook | Invalid signature rejected · duplicate `event.id` is a no-op |
+| Presign action | Oversized rejected · wrong MIME rejected · key generated server-side |
+| `sendEmail()` | Correct locale resolved from `user.locale` |
+| **Data export & account deletion** | End-to-end — a broken export is a compliance failure (§12) |
+| Business logic in `lib/` | Pure functions, trivial to cover |
+| Custom hooks | Stateful logic |
+| Interactive components | Behavior + `axe` assertion |
+| Presentational components | Optional — covered by visual verification |
+| `components/ui/` Shadcn | No — upstream |
+| `schema/auth.ts` | No — generated |
+
+### Layers
+
+**Unit + component — Vitest + RTL.** Query by accessible role and label, never by test id or class. A test that can't find the button by its accessible name is telling you the component is inaccessible — fix the component, not the test. Every interactive component asserts `toHaveNoViolations()`.
+
+**Network — MSW.** Mock at the network layer, not by stubbing modules. Never mock your own DAL in an action test; mock the external call (Stripe, Resend, R2).
+
+**E2E — Playwright.** Thin and critical-path only: sign-up → dashboard · checkout → subscription active · admin denied to a non-admin · data export · account deletion. Browser matrix: Chromium, WebKit, and Chromium mobile viewport. Each spec runs in both locales where copy matters.
+
+**A11y — `@axe-core/playwright`.** Scan every route in both locales, both themes. CI blocks on new violations.
+
+**Visual regression — Playwright snapshots.** Marketing pages and the component gallery at 375 / 768 / 1280. Catches the CSS regression that no assertion covers.
+
+**Performance — Lighthouse CI.** Runs against a preview deploy, asserts §10 budgets, blocks the merge on regression.
+
+### Test data
+
+- **Factories, not fixtures.** `tests/factories/` builds objects with sensible defaults and explicit overrides, so a test states only what it cares about.
+- **A Neon branch per CI run**, seeded and destroyed. Never a shared mutable test database.
+- MSW is Vitest-only. E2E hits real routes against the seeded branch.
+
+### Rules
+
+- Test behavior, not implementation. No call-count assertions unless the call *is* the contract ("charged exactly once").
+- One assertion concept per test. Names state expected behavior.
+- No snapshot tests of large trees — they pass on breakage and fail on formatting.
+- Deterministic: no real network, no real clock (`vi.useFakeTimers()`), no shared mutable state.
+- **A failing test is fixed, never skipped.** A flaky test is quarantined with an issue and a deadline, never left to erode trust in the suite.
 
 ---
 
-## 15. 🐛 Known Gotchas & Patterns
+## 15. 🤖 Agent Toolchain
 
-_The highest-value section in this file. When you burn time on a non-obvious bug, document it here._
+> Without a browser, an agent writes CSS blind and the human becomes the test runner. This section is what makes "verified" mean something.
+
+### MCP servers — `.mcp.json`
+
+| Server | Purpose | Use for |
+| ------ | ------- | ------- |
+| **Chrome DevTools MCP** | Real browser: DOM, console, network, performance traces, CWV | **Primary verification tool.** Screenshots, layout checks, real LCP/INP/CLS measurement, reading console errors, inspecting rendered metadata and JSON-LD |
+| **Playwright MCP** | Deterministic scripted interaction | Authoring and debugging E2E specs, multi-step flows, cross-browser checks |
+| **Docs MCP** (Context7 or equivalent) | Current library documentation | Verifying an API before using it, instead of guessing from training data |
+| **Figma MCP** (Dev Mode) | Design source | Extracting tokens and specs when a design exists |
+
+### The verification loop — required for UI work
+
+1. Build or change the UI
+2. Render the affected route through Chrome DevTools MCP
+3. **Read the console.** A clean-looking page with hydration errors is not done
+4. Screenshot at **375, 768, 1280, 1920**
+5. Compare against intent — design reference or stated requirement
+6. Keyboard pass: Tab order, visible focus, focus not obscured, Escape closes
+7. Re-render with `prefers-reduced-motion: reduce`
+8. Screenshot the empty, loading and error states, not just success
+9. If the change adds JS, an image, or a dependency: run a performance trace and check §10 budgets
+10. On a public page: inspect the rendered `<head>` for canonical, hreflang and JSON-LD (§9)
+11. Fix and repeat until it matches
+
+### Hooks
+
+| Trigger | Action | Why |
+| ------- | ------ | --- |
+| `agentStop` | `npm run typecheck && npm run lint` | Closes the correction loop without being asked |
+| `postToolUse` on write | `prettier --write` on the changed file | Formatting never becomes a review comment |
+| `preToolUse` on shell | Warn on `rm -rf`, `db:push` against a non-local URL, `git push --force` | Destructive-command guard |
+
+### Rules for agents
+
+- **Never start a long-running process.** No `dev`, `test:watch`, `db:studio`, `email:dev`. Use `npm run test` and `npm run build`. For E2E, let Playwright's `webServer` manage the server.
+- **Never claim a visual result you didn't see.** "Should render correctly" is not a result.
+- **Read the console before declaring success.** Hydration and CSP errors don't fail the build.
+- **Prefer the docs MCP over memory** for any API you're not certain about. A confidently wrong API call costs more than a lookup.
+- **Report what you ran, verbatim output for failures.**
+- **When a lookup or a fan-out is large** (many files, many routes to check), delegate to a subagent to keep the main context on implementation.
+
+---
+
+## 16. ⚙️ Environment & Secrets
+
+_Never hardcode secrets. Never commit `.env`. Never echo a secret's value into logs or agent output — reference it by key name._
+
+### Server-side — validated in `src/lib/env.ts`
+
+| Variable | Description |
+| -------- | ----------- |
+| `DATABASE_URL` | NeonDB connection string |
+| `BETTER_AUTH_SECRET` | Signs sessions and tokens — `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | Canonical base URL for auth callbacks |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | OAuth (optional) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | OAuth (optional) |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET_NAME` | Cloudflare R2 |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe |
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` / `RESEND_MARKETING_FROM_EMAIL` | Email — separate senders per §11 |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting |
+| `POSTHOG_API_KEY` | Server-side events and flag evaluation |
+
+### Client-side — validated in `src/lib/env.ts`
+
+| Variable | Description |
+| -------- | ----------- |
+| `NEXT_PUBLIC_APP_URL` | Base URL. **Must equal `BETTER_AUTH_URL`** |
+| `NEXT_PUBLIC_R2_PUBLIC_URL` | R2 public bucket |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe public key |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN |
+| `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Analytics — **loaded only after consent** (§12) |
+
+### Intentionally outside `env.ts`
+
+| Variable | Used in | Why |
+| -------- | ------- | --- |
+| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | `next.config.ts` (token CI-only) | Build-time source maps |
+| `DATABASE_URL` | `drizzle.config.ts` | Drizzle Kit runs outside Next |
+
+**Notes**
+
+- `.env.local` for dev; provider secrets in production. `.env.example` is committed with placeholders and stays in sync with these tables.
+- Validation runs at import time and fails fast naming the missing key.
+- **`SKIP_ENV_VALIDATION` is discouraged.** It converts a loud build failure into a silent production outage. CI uses a committed `.env.ci` of valid placeholders so validation actually runs (§20).
+- Secrets rotate on staff change or suspected exposure. Rotation order is in `docs/RUNBOOK.md`.
+
+---
+
+## 17. 🧰 Key Commands
+
+| Command | Description |
+| ------- | ----------- |
+| `npm run dev` | Dev server — **agents never run this** |
+| `npm run build` / `start` | Production build / server |
+| `npm run lint` / `lint:fix` | ESLint — zero warnings tolerated |
+| `npm run format` / `format:check` | Prettier |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run test` | Vitest, single run |
+| `npm run test:watch` | Watch — **run manually only** |
+| `npm run test:e2e` | Playwright |
+| `npm run test:a11y` | axe scan across routes |
+| `npm run test:visual` | Visual regression snapshots |
+| `npm run lighthouse` | Lighthouse CI against §10 budgets |
+| `npm run analyze` | Bundle analyzer |
+| `npm run i18n:check` | Translation key parity |
+| `npm run validate` | Full CI: typecheck + lint + format + i18n + test + build |
+| `npm run clean` | Delete `.next` (fixes stale type errors) |
+| `npm run auth:generate` | Regenerate the Better Auth schema |
+| `npm run db:push` / `generate` / `migrate` / `studio` / `seed` | Drizzle Kit |
+| `npm run email:dev` | React Email preview — **run manually only** |
+| `npx shadcn@latest add [component]` | Add a Shadcn component |
+
+---
+
+## 18. 🔌 Third-Party Integrations
+
+### Better Auth — self-hosted
+
+- **Purpose:** sessions, email/password, OAuth, reset, roles. Users live in **your** Postgres.
+- **Files:** `lib/auth.ts` (instance + `getSession`/`requireAuth`/`requireRole`), `lib/auth-client.ts`, `app/api/auth/[...all]/route.ts`, `lib/db/schema/auth.ts` (generated), `proxy.ts`
+- **Why over a hosted vendor:** no external identity to reconcile — no `clerk_id`, no sync webhook, no dual user store, no per-user bill. Covers email/password, OAuth, magic links, 2FA and organizations in one library rather than separate plugins ([overview](https://getnextjstemplates.com/blogs/best-nextjs-user-authentication-resources)), with a first-class Drizzle adapter ([docs](https://www.better-auth.com/docs/adapters/drizzle)).
+- **Documented alternative — Clerk:** ships faster with prebuilt auth UI and a hosted user dashboard; its free tier now covers 50,000 monthly retained users ([LogRocket](https://blog.logrocket.com/best-auth-library-nextjs-2026/)). The cost is a foreign identity plus a sync webhook you maintain. Choose deliberately — identity migration is the most expensive migration in the stack. Comparisons paraphrased for licensing compliance.
+- **Critical:** never query the database inside `proxy.ts`. Use the session-cookie helper for an optimistic redirect, then verify server-side (§20).
+- **Trade-off to plan for:** you build the login and sign-up UI. Those screens must satisfy §7 3.3.8 — paste allowed, password managers supported.
+
+### next-safe-action
+
+- **Purpose:** end-to-end type safety from input validation to result, with chainable middleware ([docs](https://next-safe-action.dev/docs/introduction)).
+- **File:** `lib/safe-action.ts` — `actionClient` (public, rate limiting mandatory) · `authActionClient` (`ctx.user` guaranteed) · `adminActionClient` (role enforced)
+- **Why it's a constraint:** see §13.2. Structural enforcement beats documented convention, and that gap is where AI-generated code fails.
+
+### Cloudflare R2 — presigned URLs
+
+- **File:** `lib/r2.ts` — `presignPutUrl({ key, contentType, contentLength })`, `publicUrl(key)`
+- **Flow:** client requests a presigned PUT from an `authActionClient` action → server validates type/size against `UPLOAD` and **generates the key itself** (`${user.id}/${uuid}.${ext}`), signs for ≤5 min → browser PUTs **directly to R2** with exactly the signed `Content-Type` and `Content-Length` → a second action persists the key.
+- **Why not FormData through an action:** that routes bytes through your serverless function, which caps around 4.5MB on Vercel. A 6MB phone photo fails opaquely, and you pay compute to relay bytes.
+- **Requires:** R2 bucket CORS for all origins including previews, or the browser PUT fails (§20).
+
+### Stripe
+
+- **Files:** `lib/stripe.ts`, `app/api/webhooks/stripe/route.ts`
+- **Critical:** handlers must be **idempotent** — Stripe retries, so anything granting credit or sending email fires twice unless you dedupe on `event.id` before side effects. Use `req.text()` for the raw body.
+- Conversion events originate here, not client-side (§11).
+- **Documented alternative:** Stripe leaves global VAT and sales tax to you. A merchant of record (Polar, Lemon Squeezy) takes a higher cut and absorbs that obligation — often worth it for solo developers selling internationally.
+
+### Resend + React Email
+
+- **Files:** `lib/resend.ts`, `lib/email/send.ts`, `lib/email/templates/*.tsx`
+- **Why React Email:** email clients are a compatibility minefield — Outlook renders through Word, Gmail strips much of `<head>`, flexbox is unreliable. Hand-maintained HTML strings don't survive the second template. React Email ships the table layouts already solved, plus local preview.
+- **Rules:** locale-aware (§8) · separate transactional and marketing senders (§11) · SPF/DKIM/DMARC verified before first send · never send an unvalidated user-supplied `to` address.
+
+### NeonDB
+
+- **Files:** `lib/db/index.ts`, `lib/db/schema/`, `drizzle.config.ts`
+- **Branching:** a branch per preview deploy and per CI run, so previews and tests never touch production data.
+
+### Upstash Redis
+
+- **File:** `lib/rate-limit.ts` · Applied to `/api/auth/*`, every public action, presign, contact.
+
+### Sentry
+
+- **Files:** `instrumentation-client.ts`, `instrumentation.ts`, `sentry.{server,edge}.config.ts`, `next.config.ts`, `global-error.tsx`, `lib/logger.ts`
+- **Critical:** `beforeSend` scrubbing and replay input masking **before** production (§12). Web Vitals report here.
+- Release health tied to deploys so a regression is attributable to a commit.
+
+### PostHog
+
+- **Files:** `lib/analytics.ts`, `lib/flags.ts`
+- **Loaded only after consent** (§12). Flags resolved **server-side** to avoid variant flash (§11).
+- Collapses analytics, flags, replay and experiments into one vendor. Self-hosting is available if data residency outweighs ops cost.
+
+---
+
+## 19. 🚀 Deployment & Operations
+
+### Environments
+
+| Environment | Branch | Data | Keys |
+| ----------- | ------ | ---- | ---- |
+| Local | — | Neon dev branch | Test |
+| Preview | feature branches | **Neon branch per PR** | **Test** |
+| Staging | `develop` | Staging branch | Test |
+| Production | `main` | Production | Live |
+
+**A preview wired to production credentials charges real cards and emails real users.** Verify test keys, a Neon branch, and preview OAuth callback URLs before the first preview deploy.
+
+### CI pipeline
+
+`typecheck → lint → format:check → i18n:check → test → build → e2e → a11y → visual → lighthouse`
+
+Uses `.env.ci` placeholders so env validation actually runs. Never `SKIP_ENV_VALIDATION`.
+
+### Database migrations — expand/contract, always
+
+Never destructive in the same deploy as the code change. Rollback reverts code, **not** the database, so every migration must be backward compatible with the previous release.
+
+1. **Expand** — add the nullable column or new table. Deploy. Old code still works.
+2. **Migrate** — backfill. Deploy code writing to both shapes.
+3. **Contract** — once no running version reads the old shape, drop it. Separate deploy.
+
+Renaming a column in one step is how you cause a five-minute outage on rollback.
+
+### Release
+
+- Never push directly to `main`. PRs only, CI green.
+- **Deploy and release are decoupled.** Ship dark behind a flag, enable separately. Reduces a risky release to a config change.
+- Squash merge, conventional commits, `CHANGELOG.md` maintained.
+- Rollback is Vercel instant rollback. Practice it before you need it.
+
+### Observability
+
+| Signal | Tool | Alert |
+| ------ | ---- | ----- |
+| Errors | Sentry | New issue in production, or error rate above baseline |
+| Performance | Sentry + Lighthouse CI | CWV regression past §10 |
+| Uptime | External check on `/` and `/api/auth` | Two consecutive failures |
+| Webhooks | Stripe dashboard + Sentry | Delivery failure rate |
+| Business | PostHog | Signup or conversion drop |
+
+Alerts route to a real channel. An alert nobody sees is a log line.
+
+### Incidents
+
+`docs/RUNBOOK.md` covers: rollback steps, secret rotation order, Stripe webhook replay, Neon point-in-time restore, and who to contact per vendor. Written before the first incident, not during.
+
+---
+
+## 20. 🐛 Known Gotchas & Patterns
+
+_The highest-value section in this file. Burned time on a surprising bug? Document it here._
 
 ### Gotchas
 
 | Issue | Solution |
 | ----- | -------- |
-| **Never query the DB inside `proxy.ts`** | Better Auth's docs are explicit: middleware runs on every matched request and may run at the edge. Use the session-cookie helper for an optimistic redirect only; verify the real session in the page or action. A DB call here is a latency tax on every navigation and unreliable at the edge. |
-| **Presigned PUT rejected by R2** | The client must send exactly the `Content-Type` and `Content-Length` that were signed. Any mismatch is a signature failure. |
-| **Browser PUT to R2 fails with a CORS error** | Configure CORS on the R2 bucket for your origins (including preview domains) allowing `PUT` and the `Content-Type` header. Easy to miss because server-side signing succeeds regardless. |
-| **In-memory rate limiting doesn't work on Vercel** | Each invocation may be a fresh instance, so the counter resets and the limit effectively does not exist — worse than nothing, because it creates false confidence. Use `@upstash/ratelimit`. |
-| **`next-safe-action` validation errors are a result field, not a throw** | Read `validationErrors` from the result. Wrapping the call in `try/catch` will silently miss them. |
-| **Auth schema is generated** | Run `npm run auth:generate` after changing Better Auth config. Hand-editing `src/lib/db/schema/auth.ts` gets overwritten. |
-| **Neon HTTP driver has no transactions** | The HTTP driver does not support `db.transaction()`. Use the WebSocket Pool driver for those paths, or sequence idempotent writes. |
-| **`nuqs` needs an adapter** | Wrap the app in `NuqsAdapter` in the root layout, or hooks throw at runtime. |
-| **`drizzle-zod` should not carry business rules** | Derive shape from the table, then `.refine()` separately. Putting business constraints in the DB schema couples validation to migrations. |
-| **Stripe webhook needs the raw body** | Use `req.text()`, not `req.json()`, for signature verification. |
-| **Stripe retries webhooks** | Handlers must be idempotent — dedupe on `event.id` before any side effect. |
-| **React Email must be rendered before sending** | `render()` the component to HTML at send time inside `sendEmail()`. Passing the component to Resend directly won't do what you expect. |
-| **next-intl requires awaiting `params`** | In Next.js 16 `params` is a Promise. Always `await params` in layouts and pages. |
-| **Hydration mismatch with dates** | Use `suppressHydrationWarning` on date elements, or format client-side only. |
-| **`next/image` needs explicit remote domains** | Add to `next.config.ts` → `images.remotePatterns`, including your R2 public domain. |
-| **Typecheck fails for deleted routes** | If `.next/types/validator.ts` references deleted files: `npm run clean` then `npm run typecheck`. |
-| **Zod date coercion for DB** | Use `z.coerce.date()` for form dates. Raw strings into Drizzle timestamp fields fail with `value.toISOString is not a function`. |
-| **Drizzle config reads env directly** | `drizzle.config.ts` uses `process.env.DATABASE_URL!` because it runs outside Next.js. |
-| **Sentry is optional** | Without `NEXT_PUBLIC_SENTRY_DSN`, logger and instrumentation degrade to console-only. No errors. |
-| **`SKIP_ENV_VALIDATION` hides real failures** | It turns a loud build failure into a silent production outage. Use `.env.ci` placeholders so validation runs in CI. |
-| **MSW must not intercept Playwright** | MSW is for Vitest only. E2E hits real routes against a seeded test database. |
-| **OAuth breaks on preview deploys** | Each preview origin needs its callback URL registered with the provider and `BETTER_AUTH_URL` set to that origin. |
+| **Never query the DB in `proxy.ts`** | Middleware runs on every matched request and may run at the edge. Use Better Auth's session-cookie helper for an optimistic redirect; verify server-side. A DB call here taxes every navigation and is unreliable at the edge. |
+| **Hydration mismatch on dates** | The cause in a next-intl app is a missing `timeZone` in `i18n/request.ts` — server and client format in different zones. Set it. **Do not reach for `suppressHydrationWarning`**: it hides the mismatch and leaves the date wrong for the user. |
+| **Presigned PUT rejected by R2** | The client must send exactly the signed `Content-Type` and `Content-Length`. Any mismatch is a signature failure. |
+| **Browser PUT to R2 fails with CORS** | Configure bucket CORS for every origin including previews, allowing `PUT` and `Content-Type`. Easy to miss because server-side signing succeeds regardless. |
+| **In-memory rate limiting doesn't work on Vercel** | Each invocation may be a fresh instance, so the counter resets and the limit effectively doesn't exist — worse than nothing, because it creates false confidence. Use `@upstash/ratelimit`. |
+| **`next-safe-action` validation errors are a result field, not a throw** | Read `validationErrors` from the result. A `try/catch` silently misses them. |
+| **Auth schema is generated** | Run `npm run auth:generate` after config changes. Hand edits to `schema/auth.ts` get overwritten. |
+| **Neon HTTP driver has no transactions** | Use the WebSocket Pool driver for those paths, or sequence idempotent writes. |
+| **`nuqs` needs its adapter** | Wrap the app in `NuqsAdapter` in the root layout or hooks throw at runtime. |
+| **`drizzle-zod` shouldn't carry business rules** | Derive shape from the table, `.refine()` separately. Business constraints in the DB schema couple validation to migrations. |
+| **Stripe webhook needs the raw body** | `req.text()`, not `req.json()`. |
+| **Stripe retries webhooks** | Dedupe on `event.id` before any side effect. |
+| **React Email must be rendered before sending** | `render()` the component to HTML inside `sendEmail()`. Passing the component to Resend won't do what you expect. |
+| **next-intl requires awaiting `params`** | In Next 16 `params` is a Promise. Always `await params`. |
+| **Metadata in the wrong language** | `generateMetadata` runs outside the component tree and doesn't inherit the request locale. `await getTranslations({ locale })`. |
+| **Translations exist but pages don't rank** | Missing `alternates.languages`. Without hreflang, Google treats locale variants as duplicates. |
+| **`x-default` pointing at a prefixed URL** | It must point at the unprefixed root. Pointing it at `/en` tells Google English is everyone's fallback. |
+| **Sitemap alternates duplicating the locale** | Build alternates from the unprefixed path, or you emit `/es/es/pricing`. |
+| **Preview deploy in search results** | `robots.ts` didn't check the environment. Global disallow unless production. |
+| **Zod errors in English for Spanish users** | The locale-aware error map isn't installed. Zod's defaults render directly in forms. |
+| **Emails always in one language** | `sendEmail()` called without a locale, or the template has hardcoded copy. Pass `user.locale`. |
+| **Analytics events firing twice in dev** | Fired from a mount effect; Strict Mode double-invokes. Fire from the interaction or a server action. |
+| **Cookie banner obscuring focused content** | WCAG 2.2 2.4.11 violation. Sticky chrome needs `scroll-margin` on focusable content. |
+| **CLS from a skeleton** | The skeleton's dimensions don't match the loaded content. Match them. |
+| **INP regression after adding a transition** | You animated a layout property. `transform` and `opacity` only. |
+| **`next/image` needs remote domains** | Add to `images.remotePatterns`, including the R2 public domain. |
+| **Typecheck fails for deleted routes** | `.next/types/validator.ts` references deleted files: `npm run clean` then `typecheck`. |
+| **Zod date coercion for the DB** | `z.coerce.date()` for form dates. Raw strings into Drizzle timestamps fail with `value.toISOString is not a function`. |
+| **Drizzle config reads env directly** | `drizzle.config.ts` uses `process.env.DATABASE_URL!` — it runs outside Next. |
+| **Sentry is optional** | Without a DSN, logger and instrumentation degrade to console-only. No errors. |
+| **`SKIP_ENV_VALIDATION` hides real failures** | Turns a loud build failure into a silent outage. Use `.env.ci` placeholders. |
+| **MSW must not intercept Playwright** | MSW is Vitest-only. E2E hits real routes against the seeded branch. |
+| **OAuth breaks on previews** | Each preview origin needs its callback registered and `BETTER_AUTH_URL` set to that origin. |
+| **Rollback didn't fix it** | Vercel reverts code, not the database. This is why migrations are expand/contract (§19). |
 
-### Patterns & Conventions
+### Patterns
 
-- **Safe Action Pattern:** pick the client (`actionClient` / `authActionClient` / `adminActionClient`) → attach the schema → the handler receives validated input and, where applicable, a guaranteed `ctx.user` → call the DAL → log → return data. Reference: `src/actions/example.ts`.
-- **DAL Pattern:** pure query functions in `src/data/*.ts`. No auth, no validation, no logging. Import the specific module.
-- **Route Handler Pattern:** wrap with `withErrorHandler()`; respond via `successResponse()` / `errorResponse()`. Reserved for webhooks and cases Server Actions can't serve (streaming, custom headers, public APIs).
-- **Client Action Pattern:** `useAction` / `useOptimisticAction` from `next-safe-action/hooks`. Do not hand-roll loading state.
-- **Schema Pattern:** `createInsertSchema(table)` from `drizzle-zod` in `src/schemas/`, `.omit()` server-managed columns, `.refine()` for business rules. Hand-write only non-table schemas (login, contact, filters).
-- **URL State Pattern:** `useQueryState` / `useQueryStates` from `nuqs` for filters, pagination, sort, tabs, and open-panel state. Zustand is for ephemeral UI only (sidebar collapsed, transient toasts).
-- **Upload Pattern:** presign action → direct browser PUT to R2 → persist-key action. Never route bytes through the server. Validate MIME and size server-side against `UPLOAD` in `@/lib/constants`; generate the key server-side.
-- **Email Pattern:** `sendEmail()` from `@/lib/email` renders a React Email component from `templates/` and dispatches via Resend.
-- **Auth Guard Pattern:** proxy for navigation (optimistic cookie check), `authActionClient` / `adminActionClient` / `requireRole()` for enforcement. Both layers, always.
-- **Rate Limiting Pattern:** `checkRateLimit(identifier)` from `@/lib/rate-limit`, with `getClientIdentifier(headers)` for IP-based limiting, on every public input path.
-- **Friendly Error Pattern:** `getFriendlyErrorMessage(error)` from `@/lib/error-messages` for user-facing text. Never surface a raw message or stack trace.
-- **Lazy Loading Pattern:** heavy client libraries via `next/dynamic` with `ssr: false`. `optimizePackageImports` in `next.config.ts` handles tree-shaking.
-- **SEO Pattern:** root layout sets `metadataBase`. Pages use `generateMetadata` with OG + Twitter fields. `robots.ts` and `sitemap.ts` cover crawling.
-- **Code Quality Pattern:** pre-commit runs lint-staged (prettier + eslint) + typecheck. Pre-push runs `test` + `build`. CI runs `validate`. Run `npm run validate` locally to simulate CI.
+- **Safe Action:** pick the client → attach schema → handler gets validated input and guaranteed `ctx.user` → DAL → log → return. Reference: `actions/example.ts`.
+- **DAL:** pure query functions. No auth, no validation, no logging. Import the specific module.
+- **Route Handler:** `withErrorHandler()` + `successResponse()`/`errorResponse()`. Reserved for webhooks, auth, and cases actions can't serve (streaming, custom headers, public APIs).
+- **Client Action:** `useAction` / `useOptimisticAction`. Never hand-roll loading state.
+- **Schema:** `createInsertSchema(table)`, `.omit()` server-managed columns, `.refine()` business rules. Hand-write only non-table schemas.
+- **URL State:** `useQueryState` / `useQueryStates`. Zustand only for ephemeral UI.
+- **Upload:** presign action → direct browser PUT → persist-key action.
+- **Email:** `sendEmail({ to, template, locale })` renders React Email and dispatches via Resend.
+- **Auth Guard:** proxy for navigation, `authActionClient`/`adminActionClient`/`requireRole()` for enforcement. Both layers, always.
+- **Rate Limit:** `checkRateLimit(identifier)` with `getClientIdentifier(headers)` on every public path.
+- **Friendly Error:** `getFriendlyErrorMessage(error)` returns a translation key.
+- **Metadata:** `buildMetadata({ locale, path, title, description })` from `lib/seo.ts` — emits canonical, hreflang, `x-default` and OG consistently. Never hand-assemble metadata.
+- **Analytics:** `track("event_name", props)` from the typed registry, after the consent gate.
+- **Feature Flag:** `getFlag(name, user)` server-side; pass the resolved value down as a prop.
+- **Four States:** every async surface renders empty, loading, error and success.
+- **Lazy Loading:** `next/dynamic` with `ssr: false` for heavy client libraries.
+- **Code Quality:** pre-commit → lint-staged + typecheck. Pre-push → test + build. CI → `validate` + e2e + a11y + visual + lighthouse.
 
 ---
 
-## 16. 📚 Key References
+## 21. 📍 Project Status & Roadmap
 
-_Human-facing. An AI assistant should not follow these links — use a docs MCP or ask._
+_Keep status under 6 lines. Detailed planning in `docs/ROADMAP.md` or GitHub Issues — long checklists in always-loaded context rot and mislead._
 
-Next.js · React · Tailwind v4 · Shadcn/UI · Radix · Drizzle · drizzle-zod · Better Auth · next-safe-action · nuqs · Zod · React Hook Form · Stripe · Resend · React Email · Cloudflare R2 · aws4fetch · Upstash · next-intl · Zustand · SWR · Sentry · Vitest · Playwright · Testing Library
+- **Phase:** Boilerplate — hardening
+- **Active Task:** None
+- **Blockers:** None
 
-- **Design (Figma/Mockups):** N/A
-- **Brand Guide / Style Guide:** N/A
+### 🟡 Now — hardening, in order
+
+1. [ ] `next` → `16.2.11+`; verify a non-admin cannot reach `/admin`
+2. [ ] Better Auth: generate schema, mount handler, proxy cookie check, guards
+3. [ ] `lib/safe-action.ts` clients; convert the example action
+4. [ ] Security headers + CSP; Sentry PII scrubbing
+5. [ ] Upstash rate limiting on `/api/auth/*` and every public action
+6. [ ] Presigned upload flow + R2 CORS
+7. [ ] `drizzle-zod` derivations; Zod locale error map
+8. [ ] `lib/seo.ts`: `buildMetadata()` with canonical + hreflang + `x-default`; multi-locale sitemap; env-aware robots; JSON-LD
+9. [ ] `IntlMessages` typing + `i18n:check`; `eslint-plugin-i18next`
+10. [ ] `styles/tokens.css` as the token SSOT; audit hardcoded values
+11. [ ] `jsx-a11y` at error; WCAG 2.2 audit including 2.4.11 and 3.3.8
+12. [ ] Vitest + RTL + MSW + `vitest-axe`; the §14 mandatory table
+13. [ ] Playwright: critical paths + `@axe-core/playwright` + visual snapshots
+14. [ ] Lighthouse CI with §10 budgets
+15. [ ] `.mcp.json` + hooks; document the verification loop
+16. [ ] Consent gate; PostHog behind it; typed event registry
+17. [ ] Legal pages localized; data export + account deletion, E2E tested
+18. [ ] React Email templates, locale-aware; `nuqs` adapter mounted
+19. [ ] `docs/RUNBOOK.md`
+
+### ⬜ Next — your first feature
+
+Domain tables → `db:push` → `drizzle-zod` schemas → DAL → actions on `authActionClient` with tests → UI with the four states, verified visually.
+
+### 🧊 Icebox
+
+Dark mode · Better Auth passkeys / 2FA / organizations · dynamic OG images · `llms.txt` · Storybook past ~15 components · merchant-of-record billing · multi-region · self-hosted PostHog
+
+---
+
+## 22. 🧩 Skills Extraction Map
+
+When this file is split into `.claude/skills/`, use this mapping. Load-map frequency determines what stays in `CLAUDE.md` versus what becomes on-demand.
+
+| Skill | Sections | Trigger description |
+| ----- | -------- | ------------------- |
+| `CLAUDE.md` (always loaded) | 0, 1, 3 | Constraints, anti-patterns, DoD, coding rules. Target under 100 lines |
+| `architecture` | 4, 5 | Adding routes, entities, or restructuring the app |
+| `design-system` | 6 | Building or changing any component, layout, or visual treatment |
+| `motion` | 6 (Motion) | Adding animation, transitions, or micro-interactions |
+| `accessibility` | 7 | Any UI work — WCAG 2.2 AA rules and the manual audit |
+| `i18n` | 8 | Adding strings, dates, numbers, currency, or a locale |
+| `seo` | 9 | Metadata, sitemap, structured data, canonical, hreflang |
+| `local-seo` | 9 (Local) | Physical location, service area, or Google Business Profile work |
+| `performance` | 10 | Adding a dependency, image, list, or client component |
+| `analytics` | 11 | Tracking, conversion, experiments, landing pages |
+| `privacy-compliance` | 12 | Storing user data, cookies, third parties, erasure |
+| `security` | 13 | Auth, API routes, webhooks, uploads, user input |
+| `testing` | 14 | Writing or changing actions, DAL, guards, schemas, components |
+| `agent-toolchain` | 15 | Verifying work — the MCP loop |
+| `integrations/*` | 18 (one per vendor) | Touching that specific service |
+| `deployment` | 19 | Migrations, releases, incidents, flags |
+| `gotchas` | 20 | Debugging anything surprising — highest hit rate per token |
+
+**Split principles.** Only §0, §1 and §3 load on every turn. `name` and `description` are the only fields the runtime sees before activating a skill, so they must be trigger-shaped and specific, not generic. Keep each `SKILL.md` lean and push depth into `references/`. Scripts that can be deterministic (i18n parity, token audit, bundle check) belong in `scripts/`, not in prose.
+
+---
+
+## 23. 📚 References
+
+_Human-facing. Agents use the docs MCP (§15) rather than following links._
+
+Next.js · React · Tailwind v4 · Shadcn/UI · Radix · Motion · Drizzle · drizzle-zod · Better Auth · next-safe-action · nuqs · Zod · React Hook Form · Stripe · Resend · React Email · Cloudflare R2 · aws4fetch · Upstash · next-intl · Zustand · SWR · Sentry · PostHog · Vitest · Playwright · Testing Library · axe-core · Lighthouse CI · WCAG 2.2 · Schema.org
+
+- **Design (Figma):** N/A — connect via Figma MCP when available
+- **Brand / Style Guide:** N/A
+- **Event catalog:** `docs/EVENTS.md`
+- **Runbook:** `docs/RUNBOOK.md`
