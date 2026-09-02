@@ -1,4 +1,4 @@
-# CI: typecheck, lint, format check, and build on every push and PR
+# CI: secret scan, typecheck/lint/format/build, and unit tests on every push and PR
 name: CI
 
 on:
@@ -8,6 +8,16 @@ on:
     branches: [main, master]
 
 jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -33,5 +43,24 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm run test
         env:
           SKIP_ENV_VALIDATION: "true"

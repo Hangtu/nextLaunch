@@ -1,3 +1,17 @@
 #!/usr/bin/env sh
-# Pre-push: verify build passes. Remove this file if it's too slow for your workflow.
+# Pre-push: block direct pushes to main/master, then verify lint + typecheck + build.
+# Remove/relax this file if it's too slow for your workflow.
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+protected="main master"
+
+for b in $protected; do
+  if [ "$branch" = "$b" ]; then
+    echo "❌ Direct push to '$branch' is blocked. Open a pull request instead."
+    exit 1
+  fi
+done
+
+npm run lint
+npm run typecheck
 npm run build

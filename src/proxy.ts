@@ -35,8 +35,19 @@ const withClerk = clerkMiddleware(async (auth, req) => {
   return intlMiddleware(req);
 });
 
+// Root-level special files served by src/app/*.ts(x), outside [locale] and
+// outside Clerk's concern — neither a locale redirect nor Clerk's own
+// middleware initialization belongs on these. Without this, they either
+// 307 to a nonexistent /es/robots.txt (breaking SEO discovery) or, once
+// routed through Clerk's middleware, fail if Clerk isn't configured yet.
+const rootLevelFiles = new Set(["/robots.txt", "/sitemap.xml"]);
+
 export default function middleware(req: NextRequest, event: NextFetchEvent) {
   const { pathname } = req.nextUrl;
+
+  if (rootLevelFiles.has(pathname)) {
+    return NextResponse.next();
+  }
 
   // Skip locale processing for API and monitoring routes
   if (pathname.startsWith("/api") || pathname.startsWith("/monitoring")) {

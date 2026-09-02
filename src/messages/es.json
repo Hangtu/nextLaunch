@@ -30,5 +30,99 @@
     "title": "Bienvenido a NextLaunch",
     "subtitle": "Tu boilerplate listo para producción",
     "cta": "Comenzar"
+  },
+  "footer": {
+    "privacy": "Privacidad",
+    "terms": "Términos"
+  },
+  "legal": {
+    "todoNotice": "Este es contenido de plantilla, no asesoría legal. Reemplázalo con una Política de Privacidad y Términos de Servicio reales, revisados por un abogado, antes de lanzar a producción.",
+    "effectiveDate": "Fecha de vigencia: [completar]",
+    "privacy": {
+      "title": "Política de Privacidad",
+      "sections": [
+        {
+          "heading": "Quiénes somos",
+          "body": "[Nombre de la empresa] (\"nosotros\") opera este sitio. Esta política describe qué información recopilamos y cómo la usamos."
+        },
+        {
+          "heading": "Información que recopilamos",
+          "body": "Datos de cuenta (nombre, correo) a través de nuestro proveedor de autenticación. Si los pagos están habilitados, Stripe procesa la información de pago — nunca la almacenamos directamente. Si el almacenamiento de archivos está habilitado, los archivos que subas se guardan en nuestro proveedor de almacenamiento. Las analíticas del sitio, si están habilitadas, no usan cookies ni recopilan datos personales."
+        },
+        {
+          "heading": "Cómo usamos tu información",
+          "body": "Para operar tu cuenta, procesar pagos cuando aplique, enviar comunicaciones transaccionales y mejorar el servicio."
+        },
+        {
+          "heading": "Cookies",
+          "body": "Usamos únicamente las cookies estrictamente necesarias para la sesión de inicio de sesión. [Actualiza esta sección si agregas cookies de analítica, marketing o preferencias no esenciales — es posible que necesites un banner de consentimiento.]"
+        },
+        {
+          "heading": "Servicios de terceros",
+          "body": "Podemos usar proveedores externos para autenticación, pagos, envío de correo, almacenamiento de archivos y monitoreo de errores. Cada uno procesa solo los datos necesarios para su función."
+        },
+        {
+          "heading": "Tus derechos",
+          "body": "Puedes solicitar acceso, corrección o eliminación de tus datos personales escribiendo a [correo de contacto]."
+        },
+        {
+          "heading": "Cambios a esta política",
+          "body": "Podemos actualizar esta política. Los cambios importantes se notificarán en el sitio."
+        },
+        {
+          "heading": "Contacto",
+          "body": "Preguntas sobre esta política: [correo de contacto]."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Términos de Servicio",
+      "sections": [
+        {
+          "heading": "Aceptación de los términos",
+          "body": "Al usar este servicio aceptas estos términos. Si no estás de acuerdo, no uses el servicio."
+        },
+        {
+          "heading": "Descripción del servicio",
+          "body": "[Describe brevemente qué hace tu producto.]"
+        },
+        {
+          "heading": "Cuentas",
+          "body": "Eres responsable de mantener la confidencialidad de tu cuenta y de toda actividad bajo ella."
+        },
+        {
+          "heading": "Pagos",
+          "body": "[Si los pagos están habilitados: describe el modelo de precios, renovaciones y reembolsos. Elimina esta sección si el producto no cobra.]"
+        },
+        {
+          "heading": "Uso aceptable",
+          "body": "No puedes usar el servicio para actividades ilegales, para vulnerar la seguridad del sistema, o para infringir los derechos de terceros."
+        },
+        {
+          "heading": "Propiedad intelectual",
+          "body": "El servicio y su contenido son propiedad de [nombre de la empresa] y están protegidos por las leyes aplicables."
+        },
+        {
+          "heading": "Terminación",
+          "body": "Podemos suspender o cancelar tu cuenta por incumplimiento de estos términos."
+        },
+        {
+          "heading": "Exclusión de garantías",
+          "body": "El servicio se ofrece \"tal cual\", sin garantías de ningún tipo."
+        },
+        {
+          "heading": "Limitación de responsabilidad",
+          "body": "[Nombre de la empresa] no será responsable por daños indirectos derivados del uso del servicio."
+        },
+        {
+          "heading": "Ley aplicable",
+          "body": "Estos términos se rigen por las leyes de [jurisdicción]."
+        },
+        {
+          "heading": "Contacto",
+          "body": "Preguntas sobre estos términos: [correo de contacto]."
+        }
+      ]
+    }
   }
 }

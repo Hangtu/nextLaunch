@@ -1,53 +1,57 @@
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+import { integrations, serverEnv } from "@/lib/env";
+
 // =============================================================================
-// In-memory rate limiter — suitable for single-instance / MVP deployments.
-// For multi-instance production, upgrade to Redis (e.g. Upstash).
+// Rate limiter — Upstash Redis when configured, in-memory fallback otherwise.
+//
+// The in-memory store resets per invocation on serverless (each request may
+// hit a fresh instance), so it's suitable for local dev / single-instance
+// deployments only. Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+// (see .env.example) to get a real distributed limiter with no code change
+// at call sites — see docs/integrations.md.
 // =============================================================================
 
 const WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 10;
+
+const redisLimiter = integrations.upstash
+  ? new Ratelimit({
+      redis: new Redis({
+        url: serverEnv.UPSTASH_REDIS_REST_URL!,
+        token: serverEnv.UPSTASH_REDIS_REST_TOKEN!,
+      }),
+      limiter: Ratelimit.slidingWindow(MAX_REQUESTS, `${WINDOW_MS} ms`),
+      prefix: "ratelimit",
+    })
+  : null;
 
 interface Entry {
   count: number;
   resetAt: number;
 }
 
-const store = new Map<string, Entry>();
+const memoryStore = new Map<string, Entry>();
 
-function prune(key: string): void {
-  const entry = store.get(key);
+function pruneMemoryEntry(key: string): void {
+  const entry = memoryStore.get(key);
   if (entry && Date.now() > entry.resetAt) {
-    store.delete(key);
+    memoryStore.delete(key);
   }
 }
 
-/**
- * Check if a request is allowed under the rate limit.
- * Returns `true` if allowed, `false` if rate limited.
- *
- * @param identifier - Unique key for the client (e.g. IP address)
- * @param options - Optional overrides for limit and window
- *
- * @example
- * ```ts
- * const ip = getClientIdentifier(req.headers);
- * if (!checkRateLimit(ip)) {
- *   throw new RateLimitError();
- * }
- * ```
- */
-export function checkRateLimit(
+function checkMemoryRateLimit(
   identifier: string,
-  options?: { maxRequests?: number; windowMs?: number }
+  limit: number,
+  window: number
 ): boolean {
-  const limit = options?.maxRequests ?? MAX_REQUESTS;
-  const window = options?.windowMs ?? WINDOW_MS;
-
-  prune(identifier);
-  const entry = store.get(identifier);
+  pruneMemoryEntry(identifier);
+  const entry = memoryStore.get(identifier);
   const now = Date.now();
 
   if (!entry || now > entry.resetAt) {
-    store.set(identifier, { count: 1, resetAt: now + window });
+    memoryStore.set(identifier, { count: 1, resetAt: now + window });
     return true;
   }
 
@@ -57,6 +61,40 @@ export function checkRateLimit(
 
   entry.count += 1;
   return true;
+}
+
+/**
+ * Check if a request is allowed under the rate limit.
+ * Returns `true` if allowed, `false` if rate limited. Uses Upstash Redis
+ * when configured (see `integrations.upstash` in `@/lib/env`), otherwise
+ * an in-memory limiter — note its serverless caveat above.
+ *
+ * @param identifier - Unique key for the client (e.g. IP address)
+ * @param options - Optional overrides for limit and window. Ignored when
+ *   Upstash is configured — its window is fixed at construction time.
+ *
+ * @example
+ * ```ts
+ * const ip = getClientIdentifier(req.headers);
+ * if (!(await checkRateLimit(ip))) {
+ *   throw new RateLimitError();
+ * }
+ * ```
+ */
+export async function checkRateLimit(
+  identifier: string,
+  options?: { maxRequests?: number; windowMs?: number }
+): Promise<boolean> {
+  if (redisLimiter) {
+    const { success } = await redisLimiter.limit(identifier);
+    return success;
+  }
+
+  return checkMemoryRateLimit(
+    identifier,
+    options?.maxRequests ?? MAX_REQUESTS,
+    options?.windowMs ?? WINDOW_MS
+  );
 }
 
 /**

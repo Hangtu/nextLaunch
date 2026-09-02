@@ -40,7 +40,7 @@ echo ""
 # ─── Files to rename ────────────────────────────────────────────────────────
 FILES=(
   "package.json"
-  "CONTEXT.MD"
+  "AGENTS.md"
   "README.md"
   "src/app/[locale]/layout.tsx"
   "src/lib/constants.ts"
