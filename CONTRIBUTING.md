@@ -23,9 +23,18 @@ npm run clean
 npm run typecheck
 ```
 
+## Commit messages
+
+This repo enforces [Conventional Commits](https://www.conventionalcommits.org/)
+(`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:`, `style:`,
+`perf:`, `ci:`, `build:`, `revert:`) via commitlint on the `commit-msg`
+hook — see `commitlint.config.js`.
+
 ## Before Pushing
 
-The `pre-push` hook runs `npm run build` to verify the production build passes. This prevents broken builds on Vercel.
+The `pre-push` hook blocks pushing directly to `main`/`master` and runs
+`npm run lint`, `npm run typecheck` and `npm run build`. This prevents
+broken builds on Vercel and keeps `main` behind a PR.
 
 ## Full Validation
 
@@ -44,4 +53,4 @@ npm run validate
 
 - [ ] `npm run validate` passes locally
 - [ ] No breaking changes introduced
-- [ ] `CONTEXT.MD` updated if architecture, routes, or patterns changed
+- [ ] `AGENTS.md`/`docs/` updated if architecture, routes, or patterns changed

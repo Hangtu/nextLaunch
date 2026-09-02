@@ -30,5 +30,99 @@
     "title": "Welcome to NextLaunch",
     "subtitle": "Your production-ready boilerplate",
     "cta": "Get Started"
+  },
+  "footer": {
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "legal": {
+    "todoNotice": "This is placeholder template content, not legal advice. Replace it with a real Privacy Policy and Terms of Service, reviewed by a lawyer, before launching to production.",
+    "effectiveDate": "Effective date: [fill in]",
+    "privacy": {
+      "title": "Privacy Policy",
+      "sections": [
+        {
+          "heading": "Who we are",
+          "body": "[Company name] (\"we\") operates this site. This policy describes what information we collect and how we use it."
+        },
+        {
+          "heading": "Information we collect",
+          "body": "Account data (name, email) via our authentication provider. If payments are enabled, Stripe processes payment information — we never store it directly. If file storage is enabled, files you upload are stored with our storage provider. Site analytics, if enabled, use no cookies and collect no personal data."
+        },
+        {
+          "heading": "How we use your information",
+          "body": "To operate your account, process payments where applicable, send transactional communications, and improve the service."
+        },
+        {
+          "heading": "Cookies",
+          "body": "We use only the cookies strictly necessary for your login session. [Update this section if you add analytics, marketing, or preference cookies that aren't essential — you may need a consent banner.]"
+        },
+        {
+          "heading": "Third-party services",
+          "body": "We may use external providers for authentication, payments, email delivery, file storage, and error monitoring. Each processes only the data necessary for its function."
+        },
+        {
+          "heading": "Your rights",
+          "body": "You can request access, correction, or deletion of your personal data by writing to [contact email]."
+        },
+        {
+          "heading": "Changes to this policy",
+          "body": "We may update this policy. Material changes will be announced on the site."
+        },
+        {
+          "heading": "Contact",
+          "body": "Questions about this policy: [contact email]."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "sections": [
+        {
+          "heading": "Acceptance of terms",
+          "body": "By using this service you agree to these terms. If you don't agree, don't use the service."
+        },
+        {
+          "heading": "Description of service",
+          "body": "[Briefly describe what your product does.]"
+        },
+        {
+          "heading": "Accounts",
+          "body": "You're responsible for keeping your account credentials confidential and for all activity under it."
+        },
+        {
+          "heading": "Payments",
+          "body": "[If payments are enabled: describe the pricing model, renewals, and refunds. Remove this section if the product doesn't charge.]"
+        },
+        {
+          "heading": "Acceptable use",
+          "body": "You may not use the service for unlawful activity, to compromise system security, or to infringe on others' rights."
+        },
+        {
+          "heading": "Intellectual property",
+          "body": "The service and its content are owned by [Company name] and protected by applicable law."
+        },
+        {
+          "heading": "Termination",
+          "body": "We may suspend or terminate your account for violating these terms."
+        },
+        {
+          "heading": "Disclaimer of warranties",
+          "body": "The service is provided \"as is\", without warranties of any kind."
+        },
+        {
+          "heading": "Limitation of liability",
+          "body": "[Company name] is not liable for indirect damages arising from use of the service."
+        },
+        {
+          "heading": "Governing law",
+          "body": "These terms are governed by the laws of [jurisdiction]."
+        },
+        {
+          "heading": "Contact",
+          "body": "Questions about these terms: [contact email]."
+        }
+      ]
+    }
   }
 }

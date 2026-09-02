@@ -1,0 +1,4 @@
+# Gitleaks allowlist — one finding fingerprint per line.
+# Add an entry only for a verified false positive (e.g. a placeholder key
+# in .env.example), never to silence a real leaked secret.
+# Fingerprint format: <commit>:<file>:<rule-id>:<start-line>

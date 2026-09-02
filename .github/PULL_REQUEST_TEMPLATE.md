@@ -6,6 +6,6 @@
 
 - [ ] I have run `npm run validate` locally and it passes without errors.
 - [ ] I have not introduced changes that break the build or CI.
-- [ ] I have updated `CONTEXT.MD` if this changes architecture, routes, or patterns.
+- [ ] I have updated `AGENTS.md`/`docs/` if this changes architecture, routes, or patterns.
 
 <!-- More info: [CONTRIBUTING.md](../CONTRIBUTING.md) -->

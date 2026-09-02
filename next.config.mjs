@@ -24,6 +24,53 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          // Baseline CSP: locks down the highest-value, lowest-breakage
+          // directives (clickjacking via frame-ancestors, base-tag
+          // hijacking, object/plugin injection). script-src/connect-src/
+          // img-src/frame-src are deliberately left open to any https:
+          // origin because Clerk, Stripe and Sentry each need specific
+          // third-party origins that depend on which account/region
+          // you're using — a wrong allowlist silently breaks sign-in or
+          // checkout. Tighten these once you know your exact origins;
+          // see docs/patterns-and-gotchas.md.
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https: wss:",
+              "frame-src https:",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "object-src 'none'",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
 };
 
 const configWithIntl = withNextIntl(nextConfig);
